@@ -2,7 +2,7 @@
 <?php
 
 /*
- bookprep collectiondirectory toimagetype 
+ bookprep collectiondirectory to-image-type 
  20141205
 
  start with standard directory form for books
@@ -97,6 +97,63 @@ function colldirexists($rdir) {
   print "******** dir=$rdir\n\n";
   return $rdir;
 }
+
+function getseqdir($base) {
+    // count underscores in filename
+    $numsep=substr_count($base, "_");
+    if (!$numsep) continue; 
+    // break filename on underscores
+    $allstr=explode("_",$base);
+    if ($numsep==1) {
+      // two part name- dir must be parts 0
+      $seq=$allstr[1];
+      $dirname=$allstr[0];
+    }
+    elseif ($numsep==2) {
+      // three part name- dir must be parts 0,1
+      $seq=$allstr[2];
+      $dirname=$allstr[0].'_'.$allstr[1];
+    }
+    elseif ($numsep==3) {
+      $seq=$allstr[3];
+      // four part name- dir must be parts 0,1,2
+      $dirname=$allstr[0]."_".$allstr[1]."_".$allstr[2];
+    }
+    // convert seq to integer
+    $seq=$seq*1;
+    if (($seq>=1)&&($seq<=2000)) print "seq = $seq\n";
+    // check for dir already there
+    $seqdir=$dirname.'/'.$seq;
+  return $seqdir;
+}
+function getdirname($base) {
+    // count underscores in filename
+    $numsep=substr_count($base, "_");
+    if (!$numsep) continue; 
+    // break filename on underscores
+    $allstr=explode("_",$base);
+    if ($numsep==1) {
+      // two part name- dir must be parts 0
+      $seq=$allstr[1];
+      $dirname=$allstr[0];
+    }
+    elseif ($numsep==2) {
+      // three part name- dir must be parts 0,1
+      $seq=$allstr[2];
+      $dirname=$allstr[0].'_'.$allstr[1];
+    }
+    elseif ($numsep==3) {
+      $seq=$allstr[3];
+      // four part name- dir must be parts 0,1,2
+      $dirname=$allstr[0]."_".$allstr[1]."_".$allstr[2];
+    }
+    // convert seq to integer
+    $seq=$seq*1;
+    if (($seq>=1)&&($seq<=2000)) print "seq = $seq\n";
+    // check for dir already there
+    $seqdir=$dirname.'/'.$seq;
+  return $dirname;
+}
 //------------- begin main-----------------
 
 $rdir=$numsep=$xnew=$new=$tif='';
@@ -121,9 +178,10 @@ chdir($dir);
 $dfiles = listFiles(".");
 // first loop to read sub directories of items
 foreach ($dfiles as $dfil) {
-  $dirname=$seq=$seqdir=$xnew=$new='';
+  $dirname=$seq=$seqdir=$xbase=$base=$xnew=$new=$tfile=$tnew='';
   // eliminate the dot directories
   if (($dfil=='.')||($dfil=='..')) continue;
+  print "dfil=$dfil \n";
   //check extension
   $end = substr($dfil, -4);
   if ($end=='.xml') {
@@ -133,7 +191,10 @@ foreach ($dfiles as $dfil) {
     $xml = file_get_contents("$dfil");
     $sxe = new SimpleXMLElement($xml);
     $namespaces = $sxe->getDocNamespaces(TRUE);
+    // mods 3.2
     if (isset($namespaces['mods'])) $meta="MODS";
+    // mods 3.5
+    if (isset($namespaces[''])) $meta="MODS";
     if (isset($namespaces['dc'])) $meta="DC";
     // check for matching item directory
     if (!isDir($xbase)) {
@@ -145,39 +206,18 @@ foreach ($dfiles as $dfil) {
     if(!file_exists($xnew)) rename($dfil,$xnew);
     print "renaming: $dfil \n  to $xnew\n";
   }// end if xml
-  if ($end=='.jp2') $fromtype='jp2';
-  elseif ($tif=='.tif') $fromtype='tif';
+  if ($end=='.jp2') {
+    $fromtype='jp2';
+  }
+  if ($end=='.tif') {
+    $fromtype='tif';
+  }
   else $fromtype='';
   if (($fromtype=='jp2') || ($fromtype=='tif')) {
     // get basename
     $base=basename($dfil,$end);
-    // count underscores in filename
-    $numsep=substr_count($base, "_");
-    // break filename on underscores
-    $allstr=explode("_",$base);
-    if (!$numsep) continue; 
-    // break filename on underscores
-    $allstr=explode("_",$base);
-    if ($numsep==1) {
-      // two part name- dir must be parts 0
-      $seq=$allstr[1];
-      $dirname=$allstr[0];
-    }
-    elseif ($numsep==2) {
-      // three part name- dir must be parts 0,1
-      $seq=$allstr[2];
-      $dirname=$allstr[0].'_'.$allstr[1];
-    }
-    elseif ($numsep==3) {
-      $seq=$allstr[3];
-      // four part name- dir must be parts 0,1,2
-      $dirname=$allstr[0]."_".$allstr[1]."_".$allstr[2];
-    }
-    // convert seq to integer
-    $seq=$seq*1;
-    if (($seq>=1)&&($seq<=2000)) print "seq = $seq\n";
-    // check for dir already there
-    $seqdir=$dirname.'/'.$seq;
+    $seqdir=getseqdir($base);
+    $dirname=getdirname($base);
     if (!isDir($seqdir)) {
       mkdir($seqdir);
       print "made $seqdir \n";
@@ -188,6 +228,13 @@ foreach ($dfiles as $dfil) {
     //print "new=$new\n";
     if(!file_exists($new)) rename($dfil,$new);
     print "renaming:  $dfil \n   to : $new\n";
+    // also send existing txt file there
+    #$tfile='./'.$xbase.'/'.$base.'.txt';
+    $tfile='./'.$dirname.'/'.$base.'.txt';
+    $tnew='./'.$seqdir."/".'OCR.txt';
+    if (is_file($tfile)) {
+       rename($tfile,$tnew);
+    }
     // change into new page dir, remembering previous
     $cwd = getcwd();
     chdir($newdir);
@@ -196,26 +243,41 @@ foreach ($dfiles as $dfil) {
       $args = 'Creversible=yes -rate -,1,0.5,0.25 Clevels=5';
       $convertcommand="kdu_compress -i OBJ.tif -o OBJ.jp2 $args ";
       exec($convertcommand);
+      if(is_file("./OCR.txt")) {
+        print "OCR already exists\n";
+        }
+        else {
+          // create OCR
+          print "creating OCR.. \n";
+          $tesscommand="tesseract OBJ.tif OCR -l eng";
+          exec($tesscommand);
+          //create HOCR
+          $tesscommand="tesseract OBJ.tif HOCR -l eng hocr";
+          exec($tesscommand);
+        }
     }// end if tif2jp2
     if ($fromtype=='jp2') {
       // create tif from jp2
       $convertcommand="kdu_expand -i OBJ.jp2 -o OBJ.tif ";
       exec($convertcommand);
-      if(is_file("OBJ.tif")) {
-        // create OCR
-        $tesscommand="tesseract OBJ.tif OCR -l eng";
-        exec($tesscommand);
-        //create HOCR
-        $tesscommand="tesseract OBJ.tif HOCR -l eng hocr";
-        exec($tesscommand);
-        // if dest is tif
-        if ($totype=='tif') {
-          // delete the OBJ.jp2
-          if (is_file('OBJ.jp2'))  exec("rm -f OBJ.jp2");
-        }// end if totype is tif
-        // if the OCR and HOCR are there, delete the tif, unless it is the totype
-        if ((is_file("OCR.txt"))&&(is_file("HOCR.html"))&&($totype!='tif'))  exec("rm -f OBJ.tif");
-      }//end if tif exist
+      if(is_file("OCR.txt")) {
+        // ocr is already made
+        }
+        else {
+          // create OCR
+          $tesscommand="tesseract OBJ.tif OCR -l eng";
+          exec($tesscommand);
+          //create HOCR
+          $tesscommand="tesseract OBJ.tif HOCR -l eng hocr";
+          exec($tesscommand);
+        }
+      // if dest is tif
+      if ($totype=='tif') {
+        // delete the OBJ.jp2
+        if (is_file('OBJ.jp2'))  exec("rm -f OBJ.jp2");
+      }// end if totype is tif
+      // if the OCR and HOCR are there, delete the tif, unless it is the totype
+      if ((is_file("OCR.txt"))&&($totype!='tif'))  exec("rm -f OBJ.tif");
     }
     // change back
     chdir($cwd);
