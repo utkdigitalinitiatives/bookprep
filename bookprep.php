@@ -41,22 +41,23 @@ the page files have an integer number ( with leading zeros) representing the seq
  ( will be detected from the existing namespace in the xml)
  into item directory.
 
-  read the first title from metadata and remember it in a variable for all of the pages.
+ .... processing image files....
 
- look at "from" files in item directory
+ determine "fromtype" files already in item directory
 
  make a directory named 1 or 2 or 3, etc. for page sequence
  
- make a DC.xml for the page with title and page 
- like (page 2 of mytitle) and put it in page dir
+ make a MODS.xml for the page 
+ with title being read from orig xml in directory above
+ like (title : page 2) and put it in page dir
  
  move item into the page directory
 
  if it is a JP2, make a tif
- make OCR and HOCR for the moved file
-and so on....
+ if OCR.txt exists move to page directory
+ else make OCR and HOCR for the moved file
 
- tif is deleted if not in final
+ tif is deleted if not totype
  */
 
 //------functions------------------- 
@@ -126,7 +127,7 @@ function getseqdir($base) {
     }
     // convert seq to integer
     $seq=$seq*1;
-    if (($seq>=1)&&($seq<=2000)) print "seq = $seq\n";
+    //if (($seq>=1)&&($seq<=2000)) print "seq = $seq\n";
     // check for dir already there
     $seqdir=$dirname.'/'.$seq;
   return $seqdir;
@@ -157,6 +158,10 @@ function getdirname($base) {
     if (($seq>=1)&&($seq<=2000)) print "seq = $seq\n";
     // check for dir already there
     $seqdir=$dirname.'/'.$seq;
+    if (!isDir($seqdir)) {
+      mkdir($seqdir);
+      print "made seqdir= $seqdir \n";
+    }  
   return $dirname;
 }
 
@@ -236,19 +241,14 @@ foreach ($dfiles as $dfil) {
     $fromtype='tif';
   }
   else $fromtype='';
-  if (($fromtype=='jp2') || ($fromtype=='tif')) {
+  if (($end=='.jp2') || ($end=='.tif')) {
     // get basename
     $base=basename($dfil,$end);
     $seqdir=getseqdir($base);
     $dirname=getdirname($base);
-    if (!isDir($seqdir)) {
-      mkdir($seqdir);
-      print "made seqdir= $seqdir \n";
-    }  
     // find seq
     $s=explode('/',$seqdir);
     $seq=$s[1];
-    //$new='./'.$seqdir."/".$base.'.tif';
     $newdir='./'.$seqdir;
     $new='./'.$seqdir."/".'OBJ'.$end;
     // what is xbase xml of this image
@@ -282,42 +282,33 @@ EOL;
       $args = 'Creversible=yes -rate -,1,0.5,0.25 Clevels=5';
       $convertcommand="kdu_compress -i OBJ.tif -o OBJ.jp2 $args ";
       exec($convertcommand);
-      if(is_file("./OCR.txt")) {
-        print "OCR already exists\n";
-        }
-        else {
-          // create OCR
-          print "creating OCR.. \n";
-          $tesscommand="tesseract OBJ.tif OCR -l eng";
-          exec($tesscommand);
-          //create HOCR
-          $tesscommand="tesseract OBJ.tif HOCR -l eng hocr";
-          exec($tesscommand);
-        }
     }// end if tif2jp2
     if ($fromtype=='jp2') {
       // create tif from jp2
       $convertcommand="kdu_expand -i OBJ.jp2 -o OBJ.tif ";
       exec($convertcommand);
-      if(is_file("OCR.txt")) {
-        // ocr is already made
-        }
-        else {
-          // create OCR
-          $tesscommand="tesseract OBJ.tif OCR -l eng";
-          exec($tesscommand);
-          //create HOCR
-          $tesscommand="tesseract OBJ.tif HOCR -l eng hocr";
-          exec($tesscommand);
-        }
-      // if dest is tif
-      if ($totype=='tif') {
-        // delete the OBJ.jp2
-        if (is_file('OBJ.jp2'))  exec("rm -f OBJ.jp2");
-      }// end if totype is tif
-      // if the OCR and HOCR are there, delete the tif, unless it is the totype
-      if ((is_file("OCR.txt"))&&(is_file("HOCR.html"))&&($totype!='tif'))  exec("rm -f OBJ.tif");
+    }// end if fromtype=jp2
+    // handle ocr
+    if(is_file("./OCR.txt")) {
+      print "OCR already exists\n";
     }
+    else {
+      // create OCR
+      print "creating OCR.. \n";
+      $tesscommand="tesseract OBJ.tif OCR -l eng";
+      exec($tesscommand);
+      //create HOCR
+      print "creating HOCR.. \n";
+      $tesscommand="tesseract OBJ.tif HOCR -l eng hocr";
+      exec($tesscommand);
+    }
+    // if dest is tif
+    if ($totype=='tif') {
+      // delete the OBJ.jp2
+      if (is_file('OBJ.jp2'))  exec("rm -f OBJ.jp2");
+    }// end if totype is tif
+    // if the OCR and HOCR are there, delete the tif, unless it is the totype
+    if ((is_file("OCR.txt"))&&(is_file("HOCR.html"))&&($totype!='tif'))  exec("rm -f OBJ.tif");
     // change back
     chdir($cwd);
     //
