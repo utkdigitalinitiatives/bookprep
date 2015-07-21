@@ -41,11 +41,16 @@ the page files have an integer number ( with leading zeros) representing the seq
  ( will be detected from the existing namespace in the xml)
  into item directory.
 
+  read the first title from metadata and remember it in a variable for all of the pages.
+
  look at "from" files in item directory
 
  make a directory named 1 or 2 or 3, etc. for page sequence
-
- move item into the directory
+ 
+ make a DC.xml for the page with title and page 
+ like (page 2 of mytitle) and put it in page dir
+ 
+ move item into the page directory
 
  if it is a JP2, make a tif
  make OCR and HOCR for the moved file
@@ -154,6 +159,31 @@ function getdirname($base) {
     $seqdir=$dirname.'/'.$seq;
   return $dirname;
 }
+
+function getmeta($xmlfile) {
+  $meta='MODS';
+  // check for kind of metadata, DC or MODS
+  $xml = file_get_contents("$xmlfile");
+  $sxe = new SimpleXMLElement($xml);
+  $namespaces = $sxe->getDocNamespaces(TRUE);
+  // mods 3.2
+  if (isset($namespaces['mods'])) $meta="MODS";
+  // mods 3.5
+  if (isset($namespaces[''])) $meta="MODS";
+  if (isset($namespaces['dc'])) $meta="DC";
+  return $meta;
+}
+
+function gettitle($xmlfile,$meta) {
+  $xml = file_get_contents("$xmlfile");
+  $sxe = new SimpleXMLElement($xml);
+//  $namespaces = $sxe->getDocNamespaces(TRUE);
+  // shortened choice-- DC or not
+//  if (isset($namespaces['dc'])) $booktitle = $sxe->title;
+  if ($meta=='DC') $booktitle = $sxe->title;
+  else $booktitle = $sxe->titleInfo->title;
+  return $booktitle;
+}
 //------------- begin main-----------------
 
 $rdir=$numsep=$xnew=$new=$tif='';
@@ -188,14 +218,7 @@ foreach ($dfiles as $dfil) {
     // get basename
     $xbase=basename($dfil,'.xml');
     // check for kind of metadata, DC or MODS
-    $xml = file_get_contents("$dfil");
-    $sxe = new SimpleXMLElement($xml);
-    $namespaces = $sxe->getDocNamespaces(TRUE);
-    // mods 3.2
-    if (isset($namespaces['mods'])) $meta="MODS";
-    // mods 3.5
-    if (isset($namespaces[''])) $meta="MODS";
-    if (isset($namespaces['dc'])) $meta="DC";
+    $meta=getmeta($dfil);
     // check for matching item directory
     if (!isDir($xbase)) {
       print "Error ***  item/metadata mismatch ***\n";
@@ -203,8 +226,8 @@ foreach ($dfiles as $dfil) {
     }
     //make new location
     $xnew='./'.$xbase.'/'.$meta.'.xml';
-    if(!file_exists($xnew)) rename($dfil,$xnew);
-    print "renaming: $dfil \n  to $xnew\n";
+    if(!file_exists($xnew)) copy($dfil,$xnew);
+    print "copying: $dfil \n  to $xnew\n";
   }// end if xml
   if ($end=='.jp2') {
     $fromtype='jp2';
@@ -220,16 +243,32 @@ foreach ($dfiles as $dfil) {
     $dirname=getdirname($base);
     if (!isDir($seqdir)) {
       mkdir($seqdir);
-      print "made $seqdir \n";
+      print "made seqdir= $seqdir \n";
     }  
+    // find seq
+    $s=explode('/',$seqdir);
+    $seq=$s[1];
     //$new='./'.$seqdir."/".$base.'.tif';
     $newdir='./'.$seqdir;
     $new='./'.$seqdir."/".'OBJ'.$end;
-    //print "new=$new\n";
+    // what is xbase xml of this image
+    $thisxml=getdirname($base).".xml";
+    // get booktitle specific to this image
+    $booktitle=gettitle($thisxml,$meta);
+    // make mods.xml
+    $pagexml=<<<EOL
+<?xml version="1.0" encoding="UTF-8"?>
+<mods:mods xmlns:mods="http://www.loc.gov/mods/v3" xmlns="http://www.loc.gov/mods/v3">
+  <mods:titleInfo>
+    <mods:title>$booktitle : page $seq</mods:title>
+  </mods:titleInfo>
+</mods:mods>
+EOL;
+    $mfile=$seqdir."/"."MODS.xml";
+    file_put_contents($mfile, $pagexml);
     if(!file_exists($new)) rename($dfil,$new);
     print "renaming:  $dfil \n   to : $new\n";
     // also send existing txt file there
-    #$tfile='./'.$xbase.'/'.$base.'.txt';
     $tfile='./'.$dirname.'/'.$base.'.txt';
     $tnew='./'.$seqdir."/".'OCR.txt';
     if (is_file($tfile)) {
@@ -277,7 +316,7 @@ foreach ($dfiles as $dfil) {
         if (is_file('OBJ.jp2'))  exec("rm -f OBJ.jp2");
       }// end if totype is tif
       // if the OCR and HOCR are there, delete the tif, unless it is the totype
-      if ((is_file("OCR.txt"))&&($totype!='tif'))  exec("rm -f OBJ.tif");
+      if ((is_file("OCR.txt"))&&(is_file("HOCR.html"))&&($totype!='tif'))  exec("rm -f OBJ.tif");
     }
     // change back
     chdir($cwd);
