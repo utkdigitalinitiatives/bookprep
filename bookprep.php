@@ -234,10 +234,10 @@ foreach ($dfiles as $dfil) {
     if(!file_exists($xnew)) copy($dfil,$xnew);
     print "copying: $dfil \n  to $xnew\n";
   }// end if xml
-  if ($end=='.jp2') {
+  elseif ($end=='.jp2') {
     $fromtype='jp2';
   }
-  if ($end=='.tif') {
+  elseif ($end=='.tif') {
     $fromtype='tif';
   }
   else $fromtype='';
