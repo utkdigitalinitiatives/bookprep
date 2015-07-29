@@ -311,7 +311,7 @@ EOL;
       if (is_file('OBJ.jp2'))  exec("rm -f OBJ.jp2");
     }// end if totype is tif
     // if the OCR and HOCR are there, delete the tif, unless it is the totype
-    if ((is_file("OCR.txt"))&&(is_file("HOCR.html"))&&($totype!='tif'))  exec("rm -f OBJ.tif");
+    if ((is_file("OCR.txt"))&&($totype!='tif'))  exec("rm -f OBJ.tif");
     // change back
     chdir($cwd);
     //
