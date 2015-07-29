@@ -264,6 +264,9 @@ foreach ($dfiles as $dfil) {
   </mods:titleInfo>
 </mods:mods>
 EOL;
+// switch contexts to fix syntax highlighting
+?>
+<?php
     $mfile=$seqdir."/"."MODS.xml";
     file_put_contents($mfile, $pagexml);
     if(!file_exists($new)) rename($dfil,$new);
