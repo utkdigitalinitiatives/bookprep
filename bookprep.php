@@ -2,10 +2,16 @@
 <?php
 
 /*
- bookprep collectiondirectory to-image-type 
+ bookprep.php
+ 
  20141205
 
+usage:
+
+ bookprep.php collectiondirectory to-image-type 
+
  start with standard directory form for books
+
  [a collection directory]
  --- [with item directories] inside of it
  --- and xml files for the items outside of the item directories
@@ -21,7 +27,13 @@ or
 
 the item directories and xml filenames have one less section than the
 image file names.
-the page files have an integer number ( with leading zeros) representing the sequence.
+
+the page files have an integer number ( with leading zeros)
+representing the sequence.
+
+if the files and directories are not arranged  and named like this,
+the script will not work.
+
 
  read parameters from command line
   cover these states:
@@ -61,6 +73,10 @@ the page files have an integer number ( with leading zeros) representing the seq
  */
 
 //------functions------------------- 
+/*
+* isDir  checks if a directory exists
+and changes into it
+*/
 function isDir($dir) {
   $cwd = getcwd();
   $returnValue = false;
@@ -70,7 +86,11 @@ function isDir($dir) {
   }
   return $returnValue;
 }
-
+/*
+* listFiles  returns an array of all filesnames,
+*  in a directory, and in subdirectories, all in one list
+*
+*/
 function listFiles( $from = '.') {
   if(! is_dir($from)) return false;
   $files = array();
@@ -88,8 +108,10 @@ function listFiles( $from = '.') {
   }// end if
   return $files;
 }
-
-
+/*
+* colldirexists  checks for directory that holds collection,
+returns error if not there.
+*/
 function colldirexists($rdir) {
   // exit if no file on command line
   if ((!isset($rdir))||(empty($rdir))) {
@@ -103,7 +125,10 @@ function colldirexists($rdir) {
   print "******** dir=$rdir\n\n";
   return $rdir;
 }
-
+/*
+* getseqdir  returns an integer for an 
+* page sequence number on the end of a basename
+*/
 function getseqdir($base) {
     // count underscores in filename
     $numsep=substr_count($base, "_");
@@ -132,6 +157,11 @@ function getseqdir($base) {
     $seqdir=$dirname.'/'.$seq;
   return $seqdir;
 }
+/*
+*  getdirname
+*  separates filename and returns part
+*  that is supposed to be directory name
+*/
 function getdirname($base) {
     // count underscores in filename
     $numsep=substr_count($base, "_");
@@ -164,7 +194,9 @@ function getdirname($base) {
     }  
   return $dirname;
 }
-
+/*
+*  getmeta   returns either MODS or DC
+*/
 function getmeta($xmlfile) {
   $meta='MODS';
   // check for kind of metadata, DC or MODS
@@ -178,13 +210,13 @@ function getmeta($xmlfile) {
   if (isset($namespaces['dc'])) $meta="DC";
   return $meta;
 }
-
+/*
+* gettitle  retruns the title of a book,
+depending on the metadata
+*/
 function gettitle($xmlfile,$meta) {
   $xml = file_get_contents("$xmlfile");
   $sxe = new SimpleXMLElement($xml);
-//  $namespaces = $sxe->getDocNamespaces(TRUE);
-  // shortened choice-- DC or not
-//  if (isset($namespaces['dc'])) $booktitle = $sxe->title;
   if ($meta=='DC') $booktitle = $sxe->title;
   else $booktitle = $sxe->titleInfo->title;
   return $booktitle;
@@ -216,7 +248,7 @@ foreach ($dfiles as $dfil) {
   $dirname=$seq=$seqdir=$xbase=$base=$xnew=$new=$tfile=$tnew='';
   // eliminate the dot directories
   if (($dfil=='.')||($dfil=='..')) continue;
-  print "dfil=$dfil \n";
+  print "current file=$dfil \n";
   //check extension
   $end = substr($dfil, -4);
   if ($end=='.xml') {
@@ -227,6 +259,7 @@ foreach ($dfiles as $dfil) {
     // check for matching item directory
     if (!isDir($xbase)) {
       print "Error ***  item/metadata mismatch ***\n";
+      print " there is no directory to match $dfil\n";
       exit();
     }
     //make new location
@@ -246,6 +279,7 @@ foreach ($dfiles as $dfil) {
     $base=basename($dfil,$end);
     $seqdir=getseqdir($base);
     $dirname=getdirname($base);
+    print "Now working with $dirname...\n";
     // find seq
     $s=explode('/',$seqdir);
     $seq=$s[1];
@@ -268,9 +302,15 @@ EOL;
 ?>
 <?php
     $mfile=$seqdir."/"."MODS.xml";
+    print "Writing MODS.xml\n";
     file_put_contents($mfile, $pagexml);
-    if(!file_exists($new)) rename($dfil,$new);
-    print "renaming:  $dfil \n   to : $new\n";
+    if(!file_exists($new)) {
+      rename($dfil,$new);
+      print "renaming:  $dfil \n   to : $new\n";
+    }
+    else {
+      print "$new is already in destination, ok.\n";
+    }
     // also send existing txt file there
     $tfile='./'.$dirname.'/'.$base.'.txt';
     $tnew='./'.$seqdir."/".'OCR.txt';
@@ -279,16 +319,19 @@ EOL;
     }
     // change into new page dir, remembering previous
     $cwd = getcwd();
+    print "Changing to directory: $newdir\n";
     chdir($newdir);
     // do conversion if needed
     if (($fromtype=='tif')&&($totype=='jp2')) {
       $args = 'Creversible=yes -rate -,1,0.5,0.25 Clevels=5';
       $convertcommand="kdu_compress -i OBJ.tif -o OBJ.jp2 $args ";
+      print "Converting tif to jp2\n";
       exec($convertcommand);
     }// end if tif2jp2
     if ($fromtype=='jp2') {
       // create tif from jp2
       $convertcommand="kdu_expand -i OBJ.jp2 -o OBJ.tif ";
+      print "Converting jp2 to tif\n";
       exec($convertcommand);
     }// end if fromtype=jp2
     // handle ocr
@@ -297,11 +340,11 @@ EOL;
     }
     else {
       // create OCR
-      print "creating OCR.. \n";
+      print "Creating OCR.. \n";
       $tesscommand="tesseract OBJ.tif OCR -l eng";
       exec($tesscommand);
       //create HOCR
-      print "creating HOCR.. \n";
+      print "Creating HOCR.. \n";
       $tesscommand="tesseract OBJ.tif HOCR -l eng hocr";
       exec($tesscommand);
     }
