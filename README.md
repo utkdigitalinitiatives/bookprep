@@ -5,9 +5,11 @@ rearranges local digitized book structure,
 also creates derivatives for jp2, ocr, hocr
 
 requirements:
-* version 3.02 of tesseract
+* version 3.02, 3.03, or 3.04 of tesseract
 * kdu_compress and kdu_expand
+* xmllint
 
-To Do:
-* create PDFS
-* log conversions
+use:  run as a shell command with two parameters
+
+./bookprep.php directory objectfiletype
+./bookprep.php  issues_dir jp2
