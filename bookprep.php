@@ -351,7 +351,7 @@ EOL;
       shell_exec("xmllint --dropdtd --xmlout HOCR.hocr --output HOCR.html");
       exec("rm -f HOCR.hocr");
       // delete redundant text file if it exists
-      if (isfile('HOCR.txt')) exec("rm -f HOCR.txt");
+      if (is_file('HOCR.txt')) exec("rm -f HOCR.txt");
     }
     // if dest is tif
     if ($totype=='tif') {
