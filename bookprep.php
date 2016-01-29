@@ -347,6 +347,11 @@ EOL;
       print "Creating HOCR.. \n";
       $tesscommand="tesseract OBJ.tif HOCR -l eng hocr";
       exec($tesscommand);
+      // remove doctype if it is there using xmllint
+      shell_exec("xmllint --dropdtd --xmlout HOCR.hocr --output HOCR.html");
+      exec("rm -f HOCR.hocr");
+      // delete redundant text file if it exists
+      if (is_file('HOCR.txt')) exec("rm -f HOCR.txt");
     }
     // if dest is tif
     if ($totype=='tif') {
