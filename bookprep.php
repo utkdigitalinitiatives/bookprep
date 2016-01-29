@@ -289,6 +289,8 @@ foreach ($dfiles as $dfil) {
     $thisxml=getdirname($base).".xml";
     // get booktitle specific to this image
     $booktitle=gettitle($thisxml,$meta);
+    // encode entities
+    $booktitle=htmlentities($booktitle,ENT_QUOTES,'UTF-8');
     // make mods.xml
     $pagexml=<<<EOL
 <?xml version="1.0" encoding="UTF-8"?>
