@@ -1,14 +1,10 @@
 #!/usr/bin/php
 <?php
-
 /*
  bookprep.php
- 
  20141205
-
-usage:
-
- bookprep.php collectiondirectory to-image-type 
+ usage:
+  bookprep.php collectiondirectory to-image-type 
 
  start with standard directory form for books
 
@@ -17,7 +13,7 @@ usage:
  --- and xml files for the items outside of the item directories
  ------ page image files are all inside of each item directory
 
- filenames have to be separated with at least one "_"
+ filenames of pages have to be separated with at least one "_"
  as in:
  roth_001.tif
 or
