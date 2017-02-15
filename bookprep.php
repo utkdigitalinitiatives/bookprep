@@ -1,74 +1,26 @@
 #!/usr/bin/php
 <?php
 /*
- bookprep.php
- 20141205
- usage:
-  bookprep.php collectiondirectory to-image-type 
+ * bookprep.php
+ * 20141205
+ * re-arrange files and directories and make derivatives to
+ * to used as a directory ingest into Islandora Solution Pack Book
+*/
 
- start with standard directory form for books
-
- [a collection directory]
- --- [with item directories] inside of it
- --- and xml files for the items outside of the item directories
- ------ page image files are all inside of each item directory
-
- filenames of pages have to be separated with at least one "_"
- as in:
- roth_001.tif
-or
- comm_2005jan_0001.tif
-or
- 0012_002345_000211_001.tif
-
-the item directories and xml filenames have one less section than the
-image file names.
-
-the page files have an integer number ( with leading zeros)
-representing the sequence.
-
-if the files and directories are not arranged  and named like this,
-the script will not work.
-
-
- read parameters from command line
-  cover these states:
-  from  to
-  ========
-  tif tif
-  tif jp2
-  jp2 tif
-  jp2 jp2
-
- ( the from type will be detected from the file that is already there)
-
- change into collection directory,
-
- find an item directory and a xml file that goes with it.
- also copy xml file with new name DC.xml or MODS.xml
- ( will be detected from the existing namespace in the xml)
- into item directory.
-
- .... processing image files....
-
- determine "fromtype" files already in item directory
-
- make a directory named 1 or 2 or 3, etc. for page sequence
- 
- make a MODS.xml for the page 
- with title being read from orig xml in directory above
- like (title : page 2) and put it in page dir
- 
- move item into the page directory
-
- if it is a JP2, make a tif
- if OCR.txt exists move to page directory
- else make OCR and HOCR for the moved file
-
- tif is deleted if not totype
- */
-
-//------functions------------------- 
+//------functions-------------------
+/*
+ * chktess  checks if an install of tesseract is available
+ *
+*/
+function isDir($dir) {
+  $cwd = getcwd();
+  $returnValue = false;
+  if (@chdir($dir)) {
+    chdir($cwd);
+    $returnValue = true;
+  }
+  return $returnValue;
+}
 /*
 * isDir  checks if a directory exists
 and changes into it
@@ -84,7 +36,7 @@ function isDir($dir) {
 }
 /*
 * listFiles  returns an array of all filesnames,
-*  in a directory, and in subdirectories, all in one list
+*  in a directory and in subdirectories, all in one list
 *
 */
 function listFiles( $from = '.') {
@@ -122,13 +74,13 @@ function colldirexists($rdir) {
   return $rdir;
 }
 /*
-* getseqdir  returns an integer for an 
+* getseqdir  returns an integer for an
 * page sequence number on the end of a basename
 */
 function getseqdir($base) {
     // count underscores in filename
     $numsep=substr_count($base, "_");
-    if (!$numsep) continue; 
+    if (!$numsep) continue;
     // break filename on underscores
     $allstr=explode("_",$base);
     if ($numsep==1) {
@@ -161,7 +113,7 @@ function getseqdir($base) {
 function getdirname($base) {
     // count underscores in filename
     $numsep=substr_count($base, "_");
-    if (!$numsep) continue; 
+    if (!$numsep) continue;
     // break filename on underscores
     $allstr=explode("_",$base);
     if ($numsep==1) {
@@ -187,7 +139,7 @@ function getdirname($base) {
     if (!isDir($seqdir)) {
       mkdir($seqdir);
       print "made seqdir= $seqdir \n";
-    }  
+    }
   return $dirname;
 }
 /*
@@ -237,7 +189,7 @@ if (!$totype) {
 }
 $dir=$rdir;
 // change to dir and read filenames
-chdir($dir); 
+chdir($dir);
 $dfiles = listFiles(".");
 // first loop to read sub directories of items
 foreach ($dfiles as $dfil) {
@@ -366,4 +318,3 @@ EOL;
 }//end foreach
 unset($dfiles);
 ?>
-
