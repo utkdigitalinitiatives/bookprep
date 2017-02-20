@@ -95,7 +95,7 @@ function chkMeta($rdir) {
     $end = substr($dfil, -4);
     if ($end=='.xml') {
       $xmlcount++;
-      print "testing metadata file: $dfil \n";
+      //print "testing metadata file: $dfil \n";
       // get basename
       $xbase=basename($dfil,'.xml');
       // check for matching item directory
@@ -283,7 +283,7 @@ function gettitle($xmlfile,$meta) {
 }
 //------------- begin main-----------------
 
-$rdir=$numsep=$xnew=$new=$tif='';
+$rdir=$numsep=$xnew=$new=$tif=$rep='';
 $errorlist = array();
 //get parameters from command line
 if (isset($argv[1])) $rdir=$argv[1];
@@ -318,16 +318,13 @@ if(count($errorlist)>=1) {
   print "Bookprep is exiting.";
   exit();
 }
-print "There are no errors, bookprep may be able to start the processing.";
-echo "Continue?: (Y/N)";
-while ((strtolower($rep)!='n')&&(strtolower($rep)!='y')) {
-  $rep=fgets(STDIN);
-}
-echo "$rep\n";
-if (strtolower($rep)=='n') {
+print "There are no errors, bookprep will be able to start the processing.";
+echo "Continue?: (N or any key to continue) ";
+$input=fgetc(STDIN);
+if (($input=='n')||($input=='N')) {
   print "Bookprep is exiting.";
   exit();
-}
+} //else will continue below
 $dir=$rdir;
 // change to dir and read filenames
 chdir($dir);
