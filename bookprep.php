@@ -318,6 +318,16 @@ if(count($errorlist)>=1) {
   print "Bookprep is exiting.";
   exit();
 }
+print "There are no errors, bookprep may be able to start the processing.";
+echo "Continue?: (Y/N)";
+while ((strtolower($rep)!='n')&strtolower($rep)!='y')) {
+  $rep=fgets(STDIN);
+}
+echo "$rep\n";
+if (strtolower($rep)=='n') {
+  print "Bookprep is exiting.";
+  exit();
+}
 $dir=$rdir;
 // change to dir and read filenames
 chdir($dir);
