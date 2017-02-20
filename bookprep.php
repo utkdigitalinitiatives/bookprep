@@ -18,7 +18,7 @@ function chkTess() {
   global $errorlist;
   $returnValue = '';
   $out=`tesseract -v`;
-  if (strstr($out.'tesseract 3.')) {
+  if (strstr($out,'tesseract 3.')) {
     $returnValue = true;
   }
   else {
@@ -35,7 +35,7 @@ function chkKDU() {
   global $errorlist;
   $returnValue = '';
   $out=`kdu_compress -v`;
-  if (strstr($out.'version v6')) {
+  if (strstr($out,'version v6')) {
     $returnValue = true;
   }
   else {
@@ -52,7 +52,7 @@ function chkConvert() {
   global $errorlist;
   $returnValue = '';
   $out=`convert -version`;
-  if (strstr($out.'ImageMagick')) {
+  if (strstr($out,'ImageMagick')) {
     $returnValue = true;
   }
   else {
@@ -258,28 +258,28 @@ else {
   print "Error **  missing parameters*** \n";
   exit();
 }
-if (isset($argv[2])) $totype=$argv[2];
+if (isset($argv[2])) {
+  if (($argv[2]=='tif')||($argv[2]=='jp2')) $totype=$argv[2];
+  else {
+    print "destination-image-type must be either \"tif\" or \"jp2\"\n";
+    print "Error **  missing parameters*** \n";
+    exit();
+  }
+} //end if  
 else {
   print "usage: bookprep.php directoryname destination-image-type:(tif|jp2)\n";
   print "Error **  missing parameters*** \n";
   exit();
 }
 // ---------------
-if (colldirexists($rdir)!=$rdir) {
-  print "usage: bookprep.php directoryname destination-type:(tif|jp2)\n";
-  print "Error ** directoryname must already exist **"
-  exit();
-}
-if (!$totype) {
-  print "usage: bookprep.php directoryname destination-type:(tif|jp2)\n";
-  print "Error **  missing destination-image-type ** \n";
-  exit();
-}
-if((chkConvert)&&(chkKDU)&&(chkTess)&&(chkMainDir($rdir))) {
+if((chkConvert())&&(chkKDU())&&(chkTess())&&(chkMaindir($rdir))) {
   // running basic system checks
 }
 else {
-  print_r($errorlist);
+  print "**** The following errors exist, please fix and rerun. ***\n";
+  foreach($errorlist as $err) {
+    print "$err\n";
+  }
   print "Bookprep is exiting.";
   exit();
 }
