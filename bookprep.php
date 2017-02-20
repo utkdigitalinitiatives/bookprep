@@ -252,17 +252,27 @@ function gettitle($xmlfile,$meta) {
 $rdir=$numsep=$xnew=$new=$tif='';
 $errorlist = array();
 //get parameters from command line
-$rdir=$argv[1];
-$totype=$argv[2];
-
+if (isset($argv[1])) $rdir=$argv[1];
+else {
+  print "usage: bookprep.php directoryname destination-image-type:(tif|jp2)\n";
+  print "Error **  missing parameters*** \n";
+  exit();
+}
+if (isset($argv[2])) $totype=$argv[2];
+else {
+  print "usage: bookprep.php directoryname destination-image-type:(tif|jp2)\n";
+  print "Error **  missing parameters*** \n";
+  exit();
+}
 // ---------------
 if (colldirexists($rdir)!=$rdir) {
   print "usage: bookprep.php directoryname destination-type:(tif|jp2)\n";
+  print "Error ** directoryname must already exist **"
   exit();
 }
 if (!$totype) {
   print "usage: bookprep.php directoryname destination-type:(tif|jp2)\n";
-  print "Error **  missing type*** \n";
+  print "Error **  missing destination-image-type ** \n";
   exit();
 }
 if((chkConvert)&&(chkKDU)&&(chkTess)&&(chkMainDir($rdir))) {
