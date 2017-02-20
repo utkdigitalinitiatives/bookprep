@@ -5,6 +5,8 @@
  * 20141205
  * re-arrange files and directories and make derivatives to
  * to used as a directory ingest into Islandora Solution Pack Book
+ * 20170220
+ * add test mode before run
 */
 
 //------functions-------------------
@@ -12,12 +14,70 @@
  * chktess  checks if an install of tesseract is available
  *
 */
-function isDir($dir) {
-  $cwd = getcwd();
-  $returnValue = false;
-  if (@chdir($dir)) {
-    chdir($cwd);
+function chkTess() {
+  global $errorlist;
+  $returnValue = '';
+  $out=`tesseract -v`;
+  if (strstr($out.'tesseract 3.')) {
     $returnValue = true;
+  }
+  else {
+    $err="error: Tesseract not available";
+    array_push($errorlist, "$err");
+
+  }
+  return $returnValue;
+}
+/*
+ * chkKDU  checks if an install of tesseract is available
+ *
+*/
+function chkKDU() {
+  global $errorlist;
+  $returnValue = '';
+  $out=`kdu_compress -v`;
+  if (strstr($out.'version v6')) {
+    $returnValue = true;
+  }
+  else {
+    $err="error: kdu_compress/expand not available";
+    array_push($errorlist, "$err");
+
+  }
+  return $returnValue;
+}
+/*
+ * chkConvert  checks if an install of Imagemagick convert is available
+ *
+*/
+function chkKDU() {
+  global $errorlist;
+  $returnValue = '';
+  $out=`convert -version`;
+  if (strstr($out.'ImageMagick')) {
+    $returnValue = true;
+  }
+  else {
+    $err="error: ImageMagick convert not available";
+    array_push($errorlist, "$err");
+
+  }
+  return $returnValue;
+}
+/*
+ * chkMaindir  checks if the main container directory exists
+ * and adds an error if it does not
+ *
+*/
+function chkMaindir($dir) {
+  global $errorlist;
+  $returnValue = '';
+  if (isDir($dir)) {
+    $returnValue = true;
+  }
+  else {
+    $err="error: Main directory does not exist.";
+    array_push($errorlist, "$err");
   }
   return $returnValue;
 }
@@ -172,7 +232,7 @@ function gettitle($xmlfile,$meta) {
 //------------- begin main-----------------
 
 $rdir=$numsep=$xnew=$new=$tif='';
-
+$errorlist = array();
 //get parameters from command line
 $rdir=$argv[1];
 $totype=$argv[2];
@@ -185,6 +245,12 @@ if (colldirexists($rdir)!=$rdir) {
 if (!$totype) {
   print "usage: bookprep.php directoryname destination-type:(tif|jp2)\n";
   print "Error **  missing type*** \n";
+  exit();
+}
+if((chkConvert)&&(chkKDU)&&(chkTess)) continue;
+else {
+  print_r($errorlist);
+  print "Booprep is exiting.";
   exit();
 }
 $dir=$rdir;
