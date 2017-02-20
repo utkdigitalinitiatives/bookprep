@@ -7,13 +7,21 @@ also creates derivatives for jp2, ocr, hocr
 requirements:
 * version 3.02, 3.03, or 3.04 of tesseract
 * kdu_compress and kdu_expand
+* ImageMagick (convert)
 * xmllint
 
- will convert tifs to jp2 or jp2 to tifs
- will also convert jp2s to tif make ocr
- and then delete the tif if the object file is meant to be a jp2
+At start up, does a system check and will exit if requirements
+do not exist.
+Next, the given directory is checked for files in the proper format and
+a list of errors will be printed and the program will exit.
 
- makes OCR and HOCR, corrects the tesseract 3.04 action of the HOCR step also making OCR.
+When the input files are properly formatted, bookprep:
+
+convert tifs to jp2 or jp2 to tifs
+convert jp2s to tif make ocr
+then delete the tif if the object file is meant to be a jp2
+
+makes OCR and HOCR, corrects the tesseract 3.04 action of the HOCR step also making OCR.
 
 use:  run as a shell command with two parameters
 
