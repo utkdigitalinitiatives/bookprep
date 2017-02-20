@@ -192,7 +192,6 @@ function getseqdir($base) {
 function getdirname($base) {
     // count underscores in filename
     $numsep=substr_count($base, "_");
-    if (!$numsep) continue;
     // break filename on underscores
     $allstr=explode("_",$base);
     if ($numsep==1) {
