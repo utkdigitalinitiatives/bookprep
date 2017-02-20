@@ -24,7 +24,6 @@ function chkTess() {
   else {
     $err="error: Tesseract not available";
     array_push($errorlist, "$err");
-
   }
   return $returnValue;
 }
@@ -42,7 +41,6 @@ function chkKDU() {
   else {
     $err="error: kdu_compress/expand not available";
     array_push($errorlist, "$err");
-
   }
   return $returnValue;
 }
@@ -60,7 +58,6 @@ function chkConvert() {
   else {
     $err="error: ImageMagick convert not available";
     array_push($errorlist, "$err");
-
   }
   return $returnValue;
 }
@@ -104,11 +101,7 @@ function colldirexists($rdir) {
     print "*** no directory name given ***, exiting... \n";
     $rdir='';
   }
-  if (!isDir($rdir)) {
-    print "*** directory name does not exist ***, exiting... ";
-    $rdir='';
-  }
-  print "******** dir=$rdir\n\n";
+  //print "******** dir=$rdir\n\n";
   return $rdir;
 }
 /*
@@ -150,7 +143,8 @@ function getNumSep($base) {
     array_push($errorlist, "$err");
   }
   return $numsep;
-}/*
+}
+/*
 * getseqdir  returns an integer for an
 * page sequence number on the end of a basename
 */
