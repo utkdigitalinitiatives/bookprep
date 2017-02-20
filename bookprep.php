@@ -83,7 +83,7 @@ function chkMaindir($dir) {
 }
 /*
 * isDir  checks if a directory exists
-and changes into it
+and changes into it and changes back to original
 */
 function isDir($dir) {
   $cwd = getcwd();
@@ -93,6 +93,23 @@ function isDir($dir) {
     $returnValue = true;
   }
   return $returnValue;
+}
+/*
+* colldirexists  checks for directory that holds collection,
+returns error if not there.
+*/
+function colldirexists($rdir) {
+  // exit if no file on command line
+  if ((!isset($rdir))||(empty($rdir))) {
+    print "*** no directory name given ***, exiting... \n";
+    $rdir='';
+  }
+  if (!isDir($rdir)) {
+    print "*** directory name does not exist ***, exiting... ";
+    $rdir='';
+  }
+  print "******** dir=$rdir\n\n";
+  return $rdir;
 }
 /*
 * listFiles  returns an array of all filesnames,
@@ -115,23 +132,6 @@ function listFiles( $from = '.') {
     }//end if
   }// end if
   return $files;
-}
-/*
-* colldirexists  checks for directory that holds collection,
-returns error if not there.
-*/
-function colldirexists($rdir) {
-  // exit if no file on command line
-  if ((!isset($rdir))||(empty($rdir))) {
-    print "*** no directory name given ***, exiting... \n";
-    $rdir='';
-  }
-  if (!isDir($rdir)) {
-    print "*** directory name does not exist ***, exiting... ";
-    $rdir='';
-  }
-  print "******** dir=$rdir\n\n";
-  return $rdir;
 }
 /*
 * getNumSep  returns an integer for the number of
