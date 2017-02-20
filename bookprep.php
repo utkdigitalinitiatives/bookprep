@@ -50,7 +50,7 @@ function chkKDU() {
  * chkConvert  checks if an install of Imagemagick convert is available
  *
 */
-function chkKDU() {
+function chkConvert() {
   global $errorlist;
   $returnValue = '';
   $out=`convert -version`;
