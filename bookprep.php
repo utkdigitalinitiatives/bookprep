@@ -17,7 +17,7 @@
 function chkTess() {
   global $errorlist;
   $returnValue = '';
-  $out=`tesseract -v`;
+  $out=`tesseract -v 2>&1`;
   if (strstr($out,'tesseract 3.')) {
     $returnValue = true;
   }
@@ -34,7 +34,7 @@ function chkTess() {
 function chkKDU() {
   global $errorlist;
   $returnValue = '';
-  $out=`kdu_compress -v`;
+  $out=`kdu_compress -v 2>&1`;
   if (strstr($out,'version v6')) {
     $returnValue = true;
   }
@@ -51,7 +51,7 @@ function chkKDU() {
 function chkConvert() {
   global $errorlist;
   $returnValue = '';
-  $out=`convert -version`;
+  $out=`convert -version 2>&1`;
   if (strstr($out,'ImageMagick')) {
     $returnValue = true;
   }
@@ -68,8 +68,8 @@ function chkConvert() {
 */
 function chkMaindir($rdir) {
   global $errorlist;
-  $returnValue = '';
-  if (isDir($dir)) {
+  $returnValue = false;
+  if (isDir($rdir)) {
     $returnValue = true;
   }
   else {
@@ -86,6 +86,7 @@ function chkMaindir($rdir) {
 function chkMeta($rdir) {
   global $errorlist;
   $xbase='';
+  $xmlcount=0;
   $cwd = getcwd();
   chdir($rdir);
   $dfiles = listFiles(".");
@@ -93,6 +94,7 @@ function chkMeta($rdir) {
   foreach ($dfiles as $dfil) {
     $end = substr($dfil, -4);
     if ($end=='.xml') {
+      $xmlcount++;
       print "testing metadata file: $dfil \n";
       // get basename
       $xbase=basename($dfil,'.xml');
@@ -102,6 +104,10 @@ function chkMeta($rdir) {
         array_push($errorlist, "$err");
       }
     }//end if xml
+    if ($xmlcount==0) {
+      $err="error: missing xml \n";
+      array_push($errorlist, "$err");
+    }
   }//end foreach
   chdir($cwd);
   return;
