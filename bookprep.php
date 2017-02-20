@@ -66,7 +66,7 @@ function chkConvert() {
  * and adds an error if it does not
  *
 */
-function chkMaindir($dir) {
+function chkMaindir($rdir) {
   global $errorlist;
   $returnValue = '';
   if (isDir($dir)) {
@@ -265,10 +265,12 @@ if (!$totype) {
   print "Error **  missing type*** \n";
   exit();
 }
-if((chkConvert)&&(chkKDU)&&(chkTess)) continue;
+if((chkConvert)&&(chkKDU)&&(chkTess)&&(chkMainDir($rdir))) {
+  // running basic system checks
+}
 else {
   print_r($errorlist);
-  print "Booprep is exiting.";
+  print "Bookprep is exiting.";
   exit();
 }
 $dir=$rdir;
