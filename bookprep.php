@@ -79,6 +79,34 @@ function chkMaindir($rdir) {
   return $returnValue;
 }
 /*
+ * chkMeta  checks the metadata file names against directories
+ *
+ *
+*/
+function chkMeta($rdir) {
+  global $errorlist;
+  $xbase='';
+  $cwd = getcwd();
+  chdir($rdir);
+  $dfiles = listFiles(".");
+  // first loop to read all existing files
+  foreach ($dfiles as $dfil) {
+    $end = substr($dfil, -4);
+    if ($end=='.xml') {
+      print "testing metadata file: $dfil \n";
+      // get basename
+      $xbase=basename($dfil,'.xml');
+      // check for matching item directory
+      if (!isDir($xbase)) {
+        $err="error: xml does not have matching directory:$dfil\n";
+        array_push($errorlist, "$err");
+      }
+    }//end if xml
+  }//end foreach
+  chdir($cwd);
+  return;
+}
+/*
 * isDir  checks if a directory exists
 and changes into it and changes back to original
 */
@@ -265,7 +293,7 @@ if (isset($argv[2])) {
     print "Error **  missing parameters*** \n";
     exit();
   }
-} //end if  
+} //end if
 else {
   print "usage: bookprep.php directoryname destination-image-type:(tif|jp2)\n";
   print "Error **  missing parameters*** \n";
@@ -274,8 +302,9 @@ else {
 // ---------------
 if((chkConvert())&&(chkKDU())&&(chkTess())&&(chkMaindir($rdir))) {
   // running basic system checks
+  chkMeta($rdir);
 }
-else {
+if(count($errorlist)>=1) {
   print "**** The following errors exist, please fix and rerun. ***\n";
   foreach($errorlist as $err) {
     print "$err\n";
@@ -287,7 +316,7 @@ $dir=$rdir;
 // change to dir and read filenames
 chdir($dir);
 $dfiles = listFiles(".");
-// first loop to read sub directories of items
+// first loop to read all existing files
 foreach ($dfiles as $dfil) {
   $dirname=$seq=$seqdir=$xbase=$base=$xnew=$new=$tfile=$tnew='';
   // eliminate the dot directories
