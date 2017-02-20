@@ -134,6 +134,23 @@ function colldirexists($rdir) {
   return $rdir;
 }
 /*
+* getNumSep  returns an integer for the number of
+* underscores in a basename or gives error for file
+*/
+function getNumSep($base) {
+  global $errorlist;
+  // count underscores in filename
+  $numsep=substr_count($base, "_");
+  if (!$numsep) {
+    $err = "error: no underscores: $base";
+    array_push($errorlist, "$err");
+  }
+  if ($numsep>3) {
+    $err = "error: too many underscores: $base";
+    array_push($errorlist, "$err");
+  }
+  return $numsep;
+}/*
 * getseqdir  returns an integer for an
 * page sequence number on the end of a basename
 */
