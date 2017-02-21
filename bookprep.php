@@ -62,6 +62,23 @@ function chkConvert() {
   return $returnValue;
 }
 /*
+ * chkConvert  checks if an install of Imagemagick convert is available
+ *
+*/
+function chkXmllint() {
+  global $errorlist;
+  $returnValue = '';
+  $out=`xmllint --version 2>&1`;
+  if (strstr($out,'xmllint: using')) {
+    $returnValue = true;
+  }
+  else {
+    $err="error: xmllint not available";
+    array_push($errorlist, "$err");
+  }
+  return $returnValue;
+}
+/*
  * chkMaindir  checks if the main container directory exists
  * and adds an error if it does not
  *
@@ -306,7 +323,7 @@ else {
   exit();
 }
 // ---------------
-if((chkConvert())&&(chkKDU())&&(chkTess())&&(chkMaindir($rdir))) {
+if((chkConvert())&&(chkXmllint())&&(chkKDU())&&(chkTess())&&(chkMaindir($rdir))) {
   // running basic system checks
   chkMeta($rdir);
 }
