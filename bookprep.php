@@ -126,12 +126,21 @@ function chkMeta($rdir) {
       array_push($errorlist, "$err");
     }
   }//end foreach
+  // checking directories to see if they have matching metadata
+  $out=`ls -d1`;
+  $mdirs=explode('/\n',$out);
+  foreach ($mdirs as $d) {
+    if (!file_exists($d.'.xml')) {
+      $err="error: metadata mismatch-- missing directory:$d";
+      array_push($errorlist, "$err");
+    }
+  }
   chdir($cwd);
   return;
 }
 /*
 * isDir  checks if a directory exists
-and changes into it and changes back to original
+* and changes into it and changes back to original
 */
 function isDir($dir) {
   $cwd = getcwd();
@@ -144,7 +153,7 @@ function isDir($dir) {
 }
 /*
 * colldirexists  checks for directory that holds collection,
-returns error if not there.
+* returns error if not there.
 */
 function colldirexists($rdir) {
   // exit if no file on command line
