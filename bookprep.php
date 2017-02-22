@@ -130,6 +130,8 @@ function chkMeta($rdir) {
   $out=`ls -d1`;
   $mdirs=explode('/\n',$out);
   foreach ($mdirs as $d) {
+    // eliminate the dot directories
+    if (($d=='.')||($d=='..')) continue;
     if (!file_exists($d.'.xml')) {
       $err="error: metadata mismatch-- missing directory:$d";
       array_push($errorlist, "$err");
