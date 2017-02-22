@@ -345,9 +345,9 @@ if(count($errorlist)>=1) {
   exit();
 }
 print "There are no errors, bookprep will be able to start the processing.";
-echo "Continue?: (N or any key to continue) ";
+echo "Continue?: (Y or any key to exit) ";
 $input=fgetc(STDIN);
-if (($input=='n')||($input=='N')) {
+if (($input!='y')&&($input!='Y')) {
   print "Bookprep is exiting.";
   exit();
 } //else will continue below
