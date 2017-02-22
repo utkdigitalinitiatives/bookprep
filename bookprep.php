@@ -127,14 +127,17 @@ function chkMeta($rdir) {
     }
   }//end foreach
   // checking directories to see if they have matching metadata
-  $out=`ls -d1`;
-  $mdirs=explode('/\n',$out);
-  foreach ($mdirs as $d) {
+  $dirfiles = scandir(".");
+  foreach ($dirfiles as $d1) {
     // eliminate the dot directories
-    if (($d=='.')||($d=='..')) continue;
-    if (!file_exists($d.'.xml')) {
-      $err="error: metadata mismatch-- missing directory:$d";
-      array_push($errorlist, "$err");
+    if (($d1=='.')||($d1=='..')) continue;
+    if (is_dir($d1)) {
+      // trim the dir name
+      $d1=trim($d1);
+      if (!file_exists($d1.'.xml')) {
+        $err="error: metadata mismatch-- missing xml file: $d1".".xml";
+        array_push($errorlist, "$err");
+      }
     }
   }
   chdir($cwd);
@@ -316,6 +319,7 @@ $errorlist = array();
 //get parameters from command line
 if (isset($argv[1])) $rdir=$argv[1];
 else {
+  print "\n";
   print "usage: bookprep.php directoryname destination-image-type:(tif|jp2)\n";
   print "Error **  missing parameters*** \n";
   exit();
@@ -323,12 +327,14 @@ else {
 if (isset($argv[2])) {
   if (($argv[2]=='tif')||($argv[2]=='jp2')) $totype=$argv[2];
   else {
+    print "\n";
     print "destination-image-type must be either \"tif\" or \"jp2\"\n";
     print "Error **  missing parameters*** \n";
     exit();
   }
 } //end if
 else {
+  print "\n";
   print "usage: bookprep.php directoryname destination-image-type:(tif|jp2)\n";
   print "Error **  missing parameters*** \n";
   exit();
@@ -339,20 +345,30 @@ if((chkConvert())&&(chkXmllint())&&(chkKDU())&&(chkTess())&&(chkMaindir($rdir)))
   chkMeta($rdir);
 }
 if(count($errorlist)>=1) {
-  print "**** The following errors exist, please fix and rerun. ***\n";
+  print "*------------------------------------------------------\n";
+  print "* The following errors exist, please fix and rerun. \n";
+  print "*------------------------------------------------------\n";
   foreach($errorlist as $err) {
     print "$err\n";
   }
-  print "Bookprep is exiting.";
+  print "*---------------------\n";
+  print "* Bookprep is exiting.\n";
+  print "*---------------------\n";
   exit();
 }
-print "There are no errors, bookprep will be able to start the processing.";
-echo "Continue?: (Y or any key to exit) ";
+print "*----------------------------------------------------------------\n";
+print "* There are no errors, bookprep will be able to start the processing.\n";
+print "* Continue?: (Y or any key to exit) \n";
 $input=fgetc(STDIN);
 if (($input!='y')&&($input!='Y')) {
-  print "Bookprep is exiting.";
+  print "*---------------------\n";
+  print "* Bookprep is exiting.\n";
+  print "*---------------------\n";
   exit();
 } //else will continue below
+print "*---------------------------\n";
+print "* Bookprep is now continuing\n";
+print "*---------------------------\n";
 $dir=$rdir;
 // change to dir and read filenames
 chdir($dir);
@@ -482,5 +498,8 @@ EOL;
   }//end else is tif
   //chdir('..');
 }//end foreach
+print "*---------------------\n";
+print "* Bookprep has finished.\n";
+print "*---------------------\n";
 unset($dfiles);
 ?>
