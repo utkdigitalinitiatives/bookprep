@@ -70,6 +70,13 @@ the script will not work. It should exit and give alist of what is not formatted
 The script makes a MODS.xml for the page with title being read from item xml in directory above
 like (title : page 2) and puts it in each page directory.
 
+## Maintainers
+
+* [Paul Cummins](https://github.com/pc37utn)
+
+## Authors
+
+* [Paul Cummins](https://github.com/pc37utn)
 
 ## Development
 
