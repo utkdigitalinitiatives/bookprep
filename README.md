@@ -103,3 +103,11 @@ if OCR.txt exists move to page directory
 else make OCR and HOCR for the moved file
 
 tif is deleted if not totype
+
+## Development
+
+Pull requests are welcome, as are use cases and suggestions.
+
+## License
+
+[GPLv3](http://www.gnu.org/licenses/gpl-3.0.txt)
