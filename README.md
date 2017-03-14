@@ -1,108 +1,75 @@
-# bookprep
+# Bookprep
 
-rearranges local digitized book structure,
-(files and directories), to islandora book_batch form
-also creates derivatives for jp2, ocr, hocr
+## Introduction
 
-requirements:
-* version 3.02, 3.03, or 3.04 of tesseract
-* kdu_compress and kdu_expand
-* ImageMagick (convert)
-* xmllint
+This CLI PHP script rearranges local digitized book structure, files, and directories to islandora book_batch form
+also creates derivatives for jp2, ocr, hocr.
 
-At start up, does a system check and will exit if requirements
-do not exist.
-Next, the given directory is checked for files in the proper format and
-a list of errors will be printed and the program will exit.
+1. At start up, does a system check and will list requirements and exit if they do not exist.
+2. The given directory is checked for files in the proper format and a list of errors will be printed and the program will exit if the format is wrong.
+3. When the input files are properly formatted, bookprep will:
+  - convert tifs to jp2 or jp2 to tifs
+  - convert jp2s to tif and make ocr then delete the tif if the object file is meant to be a jp2
+  - make OCR and HOCR, corrects the tesseract 3.04 action of the HOCR step also making OCR.
 
-When the input files are properly formatted, bookprep:
 
-convert tifs to jp2 or jp2 to tifs
-convert jp2s to tif make ocr
-then delete the tif if the object file is meant to be a jp2
+## Requirements
 
-makes OCR and HOCR, corrects the tesseract 3.04 action of the HOCR step also making OCR.
+1. Linux command line on server
+2. Tesseract - version 3.02, 3.03, or 3.04 
+3. KDU_expand and kdu_compress
+4. ImageMagick (convert)
+5. xmllint
 
-use:  run as a shell command with two parameters
+## Use
 
-directory= the directory below bookprep that contains all the volumes of your books
+Run as a shell command with two parameters.
+1. directory= the directory below bookprep that contains all the volumes of your books
+2. objectfiletype=  the type of the OBJ file you want to end up with to ingest, jp2 or tif
 
-objectfiletype=  the type of the OBJ file you want to ingest, jp2 or tif
+Example:
 
 ./bookprep.php directory objectfiletype
 
 ./bookprep.php  issues_dir jp2
 
- usage:
-./bookprep.php version
-  --
-./bookprep.php test collectiondirectory
-  -- check if valid files exist in the right places
+Locally, we run this in a screen session on a group of books, overnight for example, and might have several running at the same time as an ingest of a previous batch of books.
 
- ./bookprep.php collectiondirectory to-image-type
+## Details
 
-
-
-start with standard directory form for books
+Start with standard directory form for books. 
 
 [a collection directory]
 --- [with item directories] inside of it
 --- and xml files for the items outside of the item directories
 ------ page image files are all inside of each item directory
 
-filenames of pages have to be separated with at least one "_"
+Filenames of pages have to be separated with at least one "_",
+
 as in:
+
 roth_001.tif
+
 or
+
 comm_2005jan_0001.tif
+
 or
+
 0012_002345_000211_001.tif
 
-the item directories and xml filenames have one less section than the
+The item directories and xml filenames have one less section than the
 image file names.
 
-the page files have an integer number ( with leading zeros)
-representing the sequence.
+The page files have an integer number ( with leading zeros)
+representing the sequence. This is separated and coverted to an integer to be the page number.
 
-if the files and directories are not arranged  and named like this,
-the script will not work.
+If the files and directories are not arranged  and named like this,
+the script will not work. It should exit and give alist of what is not formatted correctly, but there are no garantees. Keep a copy of the directory you start with in case you have to stop part way through.
 
+The script makes a MODS.xml for the page with title being read from item xml in directory above
+like (title : page 2) and puts it in each page directory.
 
-read parameters from command line
- cover these states:
- from  to
- ========
- tif tif
- tif jp2
- jp2 tif
- jp2 jp2
-
-( the from type will be detected from the file that is already there)
-
-change into collection directory,
-
-find an item directory and a xml file that goes with it.
-also copy xml file with new name DC.xml or MODS.xml
-( will be detected from the existing namespace in the xml)
-into item directory.
-
-.... processing image files....
-
-determine "fromtype" files already in item directory
-
-make a directory named 1 or 2 or 3, etc. for page sequence
-
-make a MODS.xml for the page
-with title being read from orig xml in directory above
-like (title : page 2) and put it in page dir
-
-move item into the page directory
-
-if it is a JP2, make a tif
-if OCR.txt exists move to page directory
-else make OCR and HOCR for the moved file
-
-tif is deleted if not totype
 
 ## Development
 
