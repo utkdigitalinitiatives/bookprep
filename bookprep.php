@@ -7,6 +7,8 @@
  * to used as a directory ingest into Islandora Solution Pack Book
  * 20170220
  * add test mode before run
+ * 20170919
+ * add delete misc dot/temp files
 */
 
 //------functions-------------------
@@ -28,7 +30,7 @@ function chkTess() {
   return $returnValue;
 }
 /*
- * chkKDU  checks if an install of tesseract is available
+ * chkKDU  checks if an install of kdu utilities is available
  *
 */
 function chkKDU() {
@@ -62,7 +64,7 @@ function chkConvert() {
   return $returnValue;
 }
 /*
- * chkConvert  checks if an install of Imagemagick convert is available
+ * chkConvert  checks to see if xmllint is installed
  *
 */
 function chkXmllint() {
@@ -109,6 +111,12 @@ function chkMeta($rdir) {
   $dfiles = listFiles(".");
   // first loop to read all existing files
   foreach ($dfiles as $dfil) {
+    // delete .DS_Store and ._*
+    $test = basename($dfil);
+    if ($test == '.DS_Store') {
+      unlink($test);
+      continue;
+    }
     $end = substr($dfil, -4);
     if ($end=='.xml') {
       $xmlcount++;
