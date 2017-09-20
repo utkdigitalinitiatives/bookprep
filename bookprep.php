@@ -382,8 +382,8 @@ foreach ($dfiles as $dfil) {
   if (($dfil=='.')||($dfil=='..')) continue;
   // delete .DS_Store and ._*
   $test = basename($dfil);
-  if (($test == '.DS_Store')||((substr($test, 0, 2))=='._'))) {
-    unlink($test);
+  if (($test == '.DS_Store')||(substr($test, 0, 2)=='._')) {
+    unlink($dfil);
     continue;
   }
   print "current file=$dfil \n";
