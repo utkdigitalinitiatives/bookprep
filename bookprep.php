@@ -111,12 +111,6 @@ function chkMeta($rdir) {
   $dfiles = listFiles(".");
   // first loop to read all existing files
   foreach ($dfiles as $dfil) {
-    // delete .DS_Store and ._*
-    $test = basename($dfil);
-    if ($test == '.DS_Store') {
-      unlink($test);
-      continue;
-    }
     $end = substr($dfil, -4);
     if ($end=='.xml') {
       $xmlcount++;
@@ -386,6 +380,12 @@ foreach ($dfiles as $dfil) {
   $dirname=$seq=$seqdir=$xbase=$base=$xnew=$new=$tfile=$tnew='';
   // eliminate the dot directories
   if (($dfil=='.')||($dfil=='..')) continue;
+  // delete .DS_Store and ._*
+  $test = basename($dfil);
+  if (($test == '.DS_Store')||((substr($test, 0, 2))=='._'))) {
+    unlink($test);
+    continue;
+  }
   print "current file=$dfil \n";
   //check extension
   $end = substr($dfil, -4);
