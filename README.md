@@ -8,6 +8,7 @@ also creates derivatives for jp2, ocr, hocr.
 1. At start up, does a system check and will list requirements and exit if they do not exist.
 2. The given directory is checked for files in the proper format and a list of errors will be printed and the program will exit if the format is wrong.
 3. When the input files are properly formatted, bookprep will:
+  - remove misc housekeeping files from other programs, currently `".DS_Store, ._*"`
   - convert tifs to jp2 or jp2 to tifs
   - convert jp2s to tif and make ocr then delete the tif if the object file is meant to be a jp2
   - make OCR and HOCR, corrects the tesseract 3.04 action of the HOCR step also making OCR.
