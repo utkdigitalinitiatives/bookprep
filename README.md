@@ -38,7 +38,30 @@ Locally, we run this in a screen session on a group of books, overnight for exam
 
 ## Details
 
-Start with standard directory form for books. 
+Start with standard directory form for books.
+
+**Example of what it should look like before running Bookprep**
+```terminal
+example/
+├── example-vol1-no1
+│   ├── example-vol1-no1_0001.tif
+│   ├── example-vol1-no1_0002.tif
+│   ├── example-vol1-no1_0003.tif
+│   └── example-vol1-no1_0004.tif
+├── example-vol1-no1.xml
+├── example-vol1-no2
+│   ├── example-vol1-no2_0001.tif
+│   ├── example-vol1-no2_0002.tif
+│   └── example-vol1-no2_0003.tif
+├── example-vol1-no2.xml
+├── example-vol2-no1
+│   ├── example-vol2-no1_0001.tif
+│   ├── example-vol2-no1_0002.tif
+│   ├── example-vol2-no1_0003.tif
+│   ├── example-vol2-no1_0004.tif
+│   └── example-vol2-no1_0005.tif
+└── example-vol2-no1.xml
+```
 
 [a collection directory]
 --- [with item directories] inside of it
@@ -71,6 +94,41 @@ the script will not work. It should exit and give alist of what is not formatted
 The script makes a MODS.xml for the page with title being read from item xml in directory above
 like (title : page 2) and puts it in each page directory.
 
+**Example of directory structure after bookprep**
+
+This example is only displaying one of the 3 subdirectories. The others should look similar.
+```terminal
+example/
+├── example-vol1-no1
+│   ├── 1
+│   │   ├── HOCR.html
+│   │   ├── MODS.xml
+│   │   ├── OBJ.tif
+│   │   └── OCR.txt
+│   ├── 2
+│   │   ├── HOCR.html
+│   │   ├── MODS.xml
+│   │   ├── OBJ.tif
+│   │   └── OCR.txt
+│   ├── 3
+│   │   ├── HOCR.html
+│   │   ├── MODS.xml
+│   │   ├── OBJ.tif
+│   │   └── OCR.txt
+│   ├── 4
+│   │   ├── HOCR.html
+│   │   ├── MODS.xml
+│   │   ├── OBJ.tif
+│   │   └── OCR.txt
+│   └── MODS.xml
+├── example-vol1-no1.xml
+├── example-vol1-no2
+│   └── ...
+├── example-vol1-no2.xml
+├── example-vol2-no1
+│   └── ...
+└── example-vol2-no1.xml
+```
 ## Maintainers
 
 * [Paul Cummins](https://github.com/pc37utn)
