@@ -66,10 +66,6 @@ main_start() {
             summed=$(( $tif_in_dir + $jp2_in_dir ))
             obj_summed=$(( $obj_tif_in_dir + $obj_jp2_in_dir ))
             how_many_left=$(( $summed ))
-            TYPE_IMG='jp2'
-            if [ $tif_in_dir != 0 ]; then
-              let TYPE_IMG='tif'
-            fi
 
             # if there are unproccessed images in the directory
             if [ $tif_in_dir != 0 ] || [ $jp2_in_dir != 0 ]; then
@@ -83,7 +79,14 @@ main_start() {
                  if ! screen -list | grep -q ${D}; then
                    echo screen -list | grep -q ${D}
                    screen -d -m -S ${D}
-                   screen -S ${D} -p 0 -X exec ./bookprep.php ${D} ${TYPE_IMG}
+
+                   if [ $tif_in_dir != 0 ]; then
+                      screen -S ${D} -p 0 -X exec ./bookprep.php ${D} 'tif'
+                   fi
+                   if [ $jp2_in_dir != 0 ]; then
+                      screen -S ${D} -p 0 -X exec ./bookprep.php ${D} 'jp2'
+                   fi
+
                  fi
                  printf "%-12s | %-14s | %-10s\n" "    ${blu}_${end} " "${D}" " ${blu}pending${end} "
                fi
@@ -167,3 +170,6 @@ while true; do
      : $((secs--))
   done
 done
+
+# if something fails use this command to clear ALL of your sessions.
+# screen -ls | tail -n +2 | head -n -2 | awk '{print $1}'| xargs -I{} screen -S {} -X quit
