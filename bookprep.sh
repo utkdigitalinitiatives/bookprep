@@ -52,7 +52,7 @@ main_prep() {
 # main process to check if already being processed and detirmine the status.
 main_start() {
     if ls ../report.txt 1> /dev/null 2>&1; then
-      echo "" > ../report.txt
+      echo "$(date)" > ../report.txt
     else
       touch ../report.txt
     fi
@@ -60,9 +60,12 @@ main_start() {
     let all_done=0
     missing_files=()
 
-    printf "\n\n${cyn}Bookprep Helper 2.0${end}\n\n" 2>&1 | tee --append ../report.txt
-    printf "%-6s | %-14s | %-10s\n" "Status" "Folder" "Description" 2>&1 | tee --append ../report.txt
-    printf "%-6s | %-14s | %-10s\n" " ---- " " ---- " " ---- " 2>&1 | tee --append ../report.txt
+    printf "\n\n${red}Bookprep Helper 2.0${end}\n\n"
+		echo -n -e "Bookprep Helper 2.0\n" >> ../report.txt
+    printf "%-6s | %-14s | %-10s\n" "Status" "Folder" "Description"
+		echo -n -e "Status | Folder | Description\n" >> ../report.txt
+    printf "%-6s | %-14s | %-10s\n" " ---- " " ---- " " ---- "
+		echo -n -e " ----   ----   ---- \n" >> ../report.txt
 
     # This script assumes your directory looks like the following tree view.
     # bookprep.sh
@@ -97,7 +100,8 @@ main_start() {
             if [ $tif_in_dir != 0 ] || [ $jp2_in_dir != 0 ]; then
                # if there is also processed images in the directory.
                if [ $summed != 0 ] && [ $obj_summed != 0 ]; then
-                 printf "%-12s | %-14s | %-10s\n" "    ${pur}*${end} " "${D}" " ${pur}processing... ${how_many_left}${end}" 2>&1 | tee --append ../report.txt
+                 printf "%-12s | %-14s | %-10s\n" "    ${pur}*${end} " "${D}" " ${pur}processing... ${how_many_left}${end}"
+								 echo -n -e "${D} processing... ${how_many_left}\n" >> ../report.txt
                else
 
                  # no images processed yet in this directory.
@@ -114,7 +118,8 @@ main_start() {
                    fi
 
                  fi
-                 printf "%-12s | %-14s | %-10s\n" "    ${blu}_${end} " "${D}" " ${blu}pending${end} " 2>&1 | tee --append ../report.txt
+                 printf "%-12s | %-14s | %-10s\n" "    ${blu}_${end} " "${D}" " ${blu}pending${end} "
+								 echo -n -e "_ ${D} pending \n" >> ../report.txt
                fi
                let all_done=all_done+1
             fi
@@ -144,32 +149,38 @@ main_start() {
 
                 # check to see if there are any derivatives file counts that don't match.
                 if [ "$issue" != 0 ] ; then
-                    printf "%-12s | %-14s | %-30s\n" "    ${cyn}X${end} " "${D}" "MISSING OCR, HOCR" 2>&1 | tee --append ../report.txt
+                    printf "%-12s | %-14s | %-30s\n" "    ${cyn}X${end} " "${D}" "MISSING OCR, HOCR"
+										echo -n -e "X ${D} MISSING OCR, HOCR\n" >> ../report.txt
                     let all_done=all_done+1
                     if [ "${ARRAY[1]}" -ne "$obj_summed" ]; then
-                        printf "%-12s | %-14s | %-30s\n" "    ${red}X${end} " "${D}" " PROBLEM: with MODS" 2>&1 | tee --append ../report.txt
+                        printf "%-12s | %-14s | %-30s\n" "    ${red}X${end} " "${D}" " PROBLEM: with MODS"
+												echo -n -e "X ${D} PROBLEM: with MODS\n" >> ../report.txt
                     fi
                 else
                     # All files are equal and no unprocessed images.
-                    printf "%-12s | %-14s | %-10s\n" "    ${bwn}+${end} " "${D}" " ${dgr}- - done - -${end}" 2>&1 | tee --append ../report.txt
-                    #screen -X -S ${D} quit
+                    printf "%-12s | %-14s | %-10s\n" "    ${bwn}+${end} " "${D}" " ${dgr}- - done - -${end}"
+										echo -n -e "+ ${D} - - done - -\n" >> ../report.txt
                 fi
             fi
             let COUNTER=COUNTER+1
           fi
     done
 
-    printf "  ${cyn}-----------------------------------------${end}\n" 2>&1 | tee --append ../report.txt
-    printf "%-23s | %-10s\n" "# of incomplete" " ${bwn}$all_done${end}" 2>&1 | tee --append ../report.txt
-    printf "%-23s | %-10s\n\n" "Files that are missing" "${missing_files[@]}" 2>&1 | tee --append ../report.txt
-    printf "Estimated folder size: ${blu}$(du -sh)${end} \n\n" 2>&1 | tee --append ../report.txt
+    printf "  ${cyn}-----------------------------------------${end}\n"
+		echo -n -e "  ----------------------------------------- \n" >> ../report.txt
+    printf "%-23s | %-10s\n" "# of incomplete" " ${red}$all_done${end}"
+		echo -n -e "# of incomplete ${all_done}\n" >> ../report.txt
+    printf "%-23s | %-10s\n\n" "Files that are missing" "${missing_files[@]}"
+		echo -n -e "Files that are missing ${missing_files[@]}\n" >> ../report.txt
+    printf "Estimated folder size: ${blu}$(du -sh)${end} \n\n"
+		echo -n -e "Estimated folder size: $(du -sh)\n" >> ../report.txt
     if [ $all_done -eq 0 ] && [ ! -d ../staged ]; then
       exit 255
     fi
 }
 
 # If it won't start check to make sure there aren't odd files.
-# printf "File types: $(find . -type f | sed 's/.*\.//' | sort | uniq -c)" 2>&1 | tee --append ../report.txt
+# printf "File types: $(find . -type f | sed 's/.*\.//' | sort | uniq -c)"
 
 while true; do
   clear
@@ -187,8 +198,10 @@ while true; do
     break
   fi
 
-  printf 'Waiting 30 seconds to allow screen sesions to initialize. \n' 2>&1 | tee --append ../report.txt
-  printf "You can ${bwn}ctrl c${end} at anytime. It will not stop the background sessions\n\n" 2>&1 | tee --append ../report.txt
+  printf 'Waiting 30 seconds to allow screen sesions to initialize. \n'
+	echo -n -e "Waiting 30 seconds to allow screen sesions to initialize.\n" >> ../report.txt
+  printf "You can ${bwn}ctrl c${end} at anytime. It will not stop the background sessions\n\n"
+	echo -n -e "You can ctrl c at anytime. It will not stop the background sessions\n\n\n" >> ../report.txt
   secs=$((30))
   while [ $secs -gt 0 ]; do
      echo -ne " ${pur}$secs${end}\033[0K\r"
@@ -199,3 +212,5 @@ done
 
 # if something fails use this command to clear ALL of your sessions.
 # screen -ls | tail -n +2 | head -n -2 | awk '{print $1}'| xargs -I{} screen -S {} -X quit
+# Or just one secreen session
+#screen -X -S ${D} quit
