@@ -17,10 +17,37 @@ also creates derivatives for jp2, ocr, hocr.
 ## Requirements
 
 1. Linux command line on server
-2. Tesseract - version 3.02, 3.03, or 3.04 
+2. Tesseract - version 3.02, 3.03, or 3.04
 3. KDU_expand and kdu_compress
 4. ImageMagick (convert)
 5. xmllint
+
+### first comment out LINE 364
+After bookprep checks the files it ask for a user to type 'Y' to proceed. Skipping this step is needed when using the bookprep.sh file. From within the php file change __line 364__ from
+```php
+...
+364 $input=fgetc(STDIN);
+365 if (($input!='y')&&($input!='Y')) {
+366   print "*---------------------\n";
+367   print "* Bookprep is exiting.\n";
+368   print "*---------------------\n";
+369   exit();
+370 } //else will continue below
+...
+```
+
+__To__ this
+```php
+...
+364 $input='y';
+365 if (($input!='y')&&($input!='Y')) {
+366   print "*---------------------\n";
+367   print "* Bookprep is exiting.\n";
+368   print "*---------------------\n";
+369   exit();
+370 } //else will continue below
+...
+```
 
 ## Use
 
@@ -144,3 +171,13 @@ Pull requests are welcome, as are use cases and suggestions.
 ## License
 
 [GPLv3](http://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+### Known BUG
+This line may need to be commented out for now
+```php
+$out=`kdu_compress -v 2>&1`;
+if (strstr($out,'version v6')) {
+	$returnValue = true;
+}
+```
