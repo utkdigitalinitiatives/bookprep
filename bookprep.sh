@@ -110,12 +110,14 @@ main_start() {
                    echo screen -list | grep -q ${D}
                    screen -d -m -S ${D}
 
-                   if [ $tif_in_dir != 0 ]; then
-                      screen -S ${D} -p 0 -X exec ./bookprep.php ${D} 'tif'
-                   fi
-                   if [ $jp2_in_dir != 0 ]; then
-                      screen -S ${D} -p 0 -X exec ./bookprep.php ${D} 'jp2'
-                   fi
+		   # Checks to mach input to output but comenting out for now to save space
+                   #if [ $tif_in_dir != 0 ]; then
+                   #   screen -S ${D} -p 0 -X exec ./bookprep.php ${D} 'tif'
+                   #fi
+                   #if [ $jp2_in_dir != 0 ]; then
+                   #   screen -S ${D} -p 0 -X exec ./bookprep.php ${D} 'jp2'
+                   #fi
+		   screen -S ${D} -p 0 -X exec ./bookprep.php ${D} 'jp2'
 
                  fi
                  printf "%-12s | %-14s | %-10s\n" "    ${blu}_${end} " "${D}" " ${blu}pending${end} "
