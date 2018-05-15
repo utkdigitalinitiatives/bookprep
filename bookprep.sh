@@ -83,6 +83,9 @@ main_start() {
     for D in *; do
         if [ -d "${D}" ]; then
 
+            # count how many screen sessions are running
+            currently_running_sessions="$(ls /dev/pts/ | wc -l)"
+
             # count how many unprocessed images are in the directory.
             tif_in_dir="$(ls -l ${D}/*/*.tif 2>/dev/null | wc -l)"
             jp2_in_dir="$(ls -l ${D}/*/*.jp2 2>/dev/null | wc -l)"
@@ -110,15 +113,16 @@ main_start() {
                    echo screen -list | grep -q ${D}
                    screen -d -m -S ${D}
 
-		   # Checks to mach input to output but comenting out for now to save space
-                   #if [ $tif_in_dir != 0 ]; then
-                   #   screen -S ${D} -p 0 -X exec ./bookprep.php ${D} 'tif'
-                   #fi
-                   #if [ $jp2_in_dir != 0 ]; then
-                   #   screen -S ${D} -p 0 -X exec ./bookprep.php ${D} 'jp2'
-                   #fi
-		   screen -S ${D} -p 0 -X exec ./bookprep.php ${D} 'jp2'
-
+                   if [ $currently_running_sessions < 100 ]; then
+                       # Checks to mach input to output but comenting out for now to save space
+                       #if [ $tif_in_dir != 0 ]; then
+                       #   screen -S ${D} -p 0 -X exec ./bookprep.php ${D} 'tif'
+                       #fi
+                       #if [ $jp2_in_dir != 0 ]; then
+                       #   screen -S ${D} -p 0 -X exec ./bookprep.php ${D} 'jp2'
+                       #fi
+                      screen -S ${D} -p 0 -X exec ./bookprep.php ${D} 'jp2'
+                   fi
                  fi
                  printf "%-12s | %-14s | %-10s\n" "    ${blu}_${end} " "${D}" " ${blu}pending${end} "
 								 echo -n -e "_ ${D} pending \n" >> ../report.txt
