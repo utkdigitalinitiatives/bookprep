@@ -199,6 +199,10 @@ while true; do
   res=$?
   if (( res == 255 )); then
     mkdir ../staged
+
+    # Renames files with '-' to '_' (test-01.tif to test_01.tif)
+    rename "s/-/_/g" *
+
     for F in *; do
           if [ -d "${F}" ]; then
             rsync --progress --remove-source-files -azv "${F}/" "../staged"
