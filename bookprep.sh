@@ -205,7 +205,15 @@ while true; do
 
     for F in *; do
           if [ -d "${F}" ]; then
-            rsync --progress --remove-source-files -azv "${F}/" "../staged"
+            screen -S ${F} -p 0 -X exec rsync --progress --remove-source-files -azv "${F}/" "../staged"
+
+            # Wait to proceed if too many sessions are running
+            while [ "$(ls /dev/pts/ | wc -l)" -ge 100 ]
+              do
+                echo "waiting"
+                sleep 1
+              done
+
           fi
       done
     rm -rf */
