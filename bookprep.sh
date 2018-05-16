@@ -38,6 +38,10 @@ main_prep() {
   # checks if files are processing or already staged
   if [ ! -d ./processing_101 ] && [ ! -d ../staged ]
   then
+      # Removes garbage files first
+      find . -type f -name '._*' -delete
+      find . -type f -name '*.DS_Store' -ls -delete
+
       for E in *; do
           if [ -d "${E}" ]; then
             mkdir "processing_${short_counter}"
