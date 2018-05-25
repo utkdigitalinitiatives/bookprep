@@ -22,8 +22,9 @@ also creates derivatives for jp2, ocr, hocr.
 4. ImageMagick (convert)
 5. xmllint
 
-### first comment out LINE 364
+### To use with bookprep.sh comment out LINE 364 (this can be fixed later so the php does not need to be modified)
 After bookprep checks the files it ask for a user to type 'Y' to proceed. Skipping this step is needed when using the bookprep.sh file. From within the php file change __line 364__ from
+
 ```php
 ...
 364 $input=fgetc(STDIN);
@@ -51,17 +52,26 @@ __To__ this
 
 ## Use
 
-Run as a shell command with two parameters.
-1. directory= the directory below bookprep that contains all the volumes of your books
-2. objectfiletype=  the type of the OBJ file you want to end up with to ingest, jp2 or tif
+Run as a shell command
 
 Example:
+```bash
+./bookprep.php
 
-./bookprep.php directory objectfiletype
+$ Where are the images (absolute path): /gwork/don/test_book_images
+$ Where is the metadata files (absolute path): /gwork/don/test_book_metadata
+```
 
-./bookprep.php  issues_dir jp2
+To use the bookprep.sh file.
+```bash
 
-Locally, we run this in a screen session on a group of books, overnight for example, and might have several running at the same time as an ingest of a previous batch of books.
+$./bookprep.sh
+
+Starting...
+
+$ Where are the images (absolute path): /gwork/don/test_book_images
+$ Where is the metadata files (absolute path): /gwork/don/test_book_metadata
+```
 
 ## Details
 
@@ -95,7 +105,7 @@ example/
 --- and xml files for the items outside of the item directories
 ------ page image files are all inside of each item directory
 
-Filenames of pages have to be separated with at least one "_",
+Filenames of pages have to be separated with at least one _
 
 as in:
 
@@ -156,6 +166,25 @@ example/
 │   └── ...
 └── example-vol2-no1.xml
 ```
+
+### Bookprep.sh
+Is a wrapper for bookprep.php to simulate a multithreading process. The steps it takes are
+
+ - initial                 - Looks for a config file
+ - ask_user                - Ask user for where the images and metadata is located.
+ - config-file-generated   - Creates a directory to process the files in and a .config file to store the last know step.
+ - init_copies             -> copy the images/metadata into the processing directory.
+ - init_copies_complete    - checks if the images & metadata have finished copying.
+ - move_to_processing      - Preps the directory to process each child directory with it's own instance of bookprep.php
+ - processing              -> Process the pages with bookprep.php 100 at a time.
+ - processing-complete     - Checks that the pages have completed without errors and all expected files are present (OCR, HOCR,etc.).
+ - cleanup-files-staging   -> move the files back to the expected structure for ingestion.
+ - moving-file-to-staging  -> Moving the files to staging directory.
+ - check-staging-move      - Check to see if staging move is complete.
+ - complete                - print to screen message to inform user and exit.
+
+This file can be started, stopped and resumed at almost any time. It will give you a message when it's safe to exit. It will loop every 30 seconds to update the user and to test if the next step is ready.
+
 ## Maintainers
 
 * [Paul Cummins](https://github.com/pc37utn)
