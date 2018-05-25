@@ -185,6 +185,12 @@ Is a wrapper for bookprep.php to simulate a multithreading process. The steps it
 
 This file can be started, stopped and resumed at almost any time. It will give you a message when it's safe to exit. It will loop every 30 seconds to update the user and to test if the next step is ready.
 
+#### Stop all screen session
+This will stop __"ALL"__ screen sessions by this user.
+```bash
+$ bookprep.sh stop
+```
+
 ## Maintainers
 
 * [Paul Cummins](https://github.com/pc37utn)
