@@ -208,11 +208,3 @@ Pull requests are welcome, as are use cases and suggestions.
 [GPLv3](http://www.gnu.org/licenses/gpl-3.0.txt)
 
 
-### Known BUG
-This line may need to be commented out for now
-```php
-$out=`kdu_compress -v 2>&1`;
-if (strstr($out,'version v6')) {
-	$returnValue = true;
-}
-```
