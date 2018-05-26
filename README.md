@@ -17,24 +17,61 @@ also creates derivatives for jp2, ocr, hocr.
 ## Requirements
 
 1. Linux command line on server
-2. Tesseract - version 3.02, 3.03, or 3.04 
+2. Tesseract - version 3.02, 3.03, or 3.04
 3. KDU_expand and kdu_compress
 4. ImageMagick (convert)
 5. xmllint
 
+### To use with bookprep.sh comment out LINE 364 (this can be fixed later so the php does not need to be modified)
+After bookprep checks the files it ask for a user to type 'Y' to proceed. Skipping this step is needed when using the bookprep.sh file. From within the php file change __line 364__ from
+
+```php
+...
+364 $input=fgetc(STDIN);
+365 if (($input!='y')&&($input!='Y')) {
+366   print "*---------------------\n";
+367   print "* Bookprep is exiting.\n";
+368   print "*---------------------\n";
+369   exit();
+370 } //else will continue below
+...
+```
+
+__To__ this
+```php
+...
+364 $input='y';
+365 if (($input!='y')&&($input!='Y')) {
+366   print "*---------------------\n";
+367   print "* Bookprep is exiting.\n";
+368   print "*---------------------\n";
+369   exit();
+370 } //else will continue below
+...
+```
+
 ## Use
 
-Run as a shell command with two parameters.
-1. directory= the directory below bookprep that contains all the volumes of your books
-2. objectfiletype=  the type of the OBJ file you want to end up with to ingest, jp2 or tif
+Run as a shell command
 
 Example:
+```bash
+./bookprep.php
 
-./bookprep.php directory objectfiletype
+$ Where are the images (absolute path): /gwork/don/test_book_images
+$ Where is the metadata files (absolute path): /gwork/don/test_book_metadata
+```
 
-./bookprep.php  issues_dir jp2
+To use the bookprep.sh file.
+```bash
 
-Locally, we run this in a screen session on a group of books, overnight for example, and might have several running at the same time as an ingest of a previous batch of books.
+$./bookprep.sh
+
+Starting...
+
+$ Where are the images (absolute path): /gwork/don/test_book_images
+$ Where is the metadata files (absolute path): /gwork/don/test_book_metadata
+```
 
 ## Details
 
@@ -68,7 +105,7 @@ example/
 --- and xml files for the items outside of the item directories
 ------ page image files are all inside of each item directory
 
-Filenames of pages have to be separated with at least one "_",
+Filenames of pages have to be separated with at least one _
 
 as in:
 
@@ -129,6 +166,31 @@ example/
 │   └── ...
 └── example-vol2-no1.xml
 ```
+
+### Bookprep.sh
+Is a wrapper for bookprep.php to simulate a multithreading process. The steps it takes are
+
+ - initial                 - Looks for a config file
+ - ask_user                - Ask user for where the images and metadata is located.
+ - config-file-generated   - Creates a directory to process the files in and a .config file to store the last know step.
+ - init_copies             -> copy the images/metadata into the processing directory.
+ - init_copies_complete    - checks if the images & metadata have finished copying.
+ - move_to_processing      - Preps the directory to process each child directory with it's own instance of bookprep.php
+ - processing              -> Process the pages with bookprep.php 100 at a time.
+ - processing-complete     - Checks that the pages have completed without errors and all expected files are present (OCR, HOCR,etc.).
+ - cleanup-files-staging   -> move the files back to the expected structure for ingestion.
+ - moving-file-to-staging  -> Moving the files to staging directory.
+ - check-staging-move      - Check to see if staging move is complete.
+ - complete                - print to screen message to inform user and exit.
+
+This file can be started, stopped and resumed at almost any time. It will give you a message when it's safe to exit. It will loop every 30 seconds to update the user and to test if the next step is ready.
+
+#### Stop all screen session
+This will stop __"ALL"__ screen sessions by this user.
+```bash
+$ bookprep.sh stop
+```
+
 ## Maintainers
 
 * [Paul Cummins](https://github.com/pc37utn)
@@ -144,3 +206,13 @@ Pull requests are welcome, as are use cases and suggestions.
 ## License
 
 [GPLv3](http://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+### Known BUG
+This line may need to be commented out for now
+```php
+$out=`kdu_compress -v 2>&1`;
+if (strstr($out,'version v6')) {
+	$returnValue = true;
+}
+```
