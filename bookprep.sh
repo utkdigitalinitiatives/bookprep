@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
-
+# Something went wrong and you want to stop everything
 if [ "$1" == 'stop' ]; then
   clear
   printf "\n\t\tStopping all screen sessions by this user.\n\n\n"
   screen -ls | tail -n +2 | head -n -2 | awk '{print $1}'| xargs -I{} screen -S {} -X quit
   exit
 fi
+
 
 # Steps this app will take (steps with screen sessions will be noted with an "->" )
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
@@ -39,6 +40,10 @@ This script assumes your directory looks like the following tree view.
 │   ├── yrb_1898.xml
 │   └── yrb_1899.xml
 └── ...
+'
+
+COMPLETE='
+Files have been moved to ../staging/ directory
 
 ├── staged/
 │   ├── yrb_1897
@@ -57,12 +62,9 @@ all_done=0
 short_counter=101
 missing_files=()
 current_user="$(whoami)"
-working_directory="/gwork/${current_user}/book_processing"
-staging="/gwork/${current_user}/staging"
-current_user_gwork="/gwork/${current_user}"
+staging="../staging"
 bookprep_location="$(pwd)/"
-screen_session_names=(image_transfer metadata_transfer moving_to_staging processing_)
-config_file=.config
+config_file=$bookprep_location/.config_bookprep
 
 # declare currently_running_init_rsync_sessions=0
 ARRAY=()
@@ -103,11 +105,11 @@ exit_screen_sessions(){
 
 # Writes directories and state to config_file. Line 3 must exist prior to this.
 write_to_config(){
-  current_step="$1"
-  sed -i "3s/.*/current_step=\"${1}\"/" $config_file
+    current_step="$1"
+    sed -i "4s/.*/current_step=\"${1}\"/" $config_file
 
-  # Some OS need an extra empty string.
-  # sed -i '' "3s/.*/current_step=\"${1}\"/" $config_file
+    # Some OS need an extra empty string.
+    # sed -i '' "3s/.*/current_step=\"${1}\"/" $config_file
 }
 
 # Recursive function to read in file locations
@@ -127,12 +129,15 @@ find_files(){
     ! [[ "${metadata_dir:0:1}" == "/" ]] && clear && find_files
     ! [ -d "${metadata_dir}" ] && clear && echo "metadata path doesn't exist\n" && find_files
 
+
     # Trailing char should be a /
-    [ "${working_directory: -1}" == "/" ] && working_directory-='/'
+    ! [ "${working_directory: -1}" == "/" ] && working_directory+='/'
     ! [ "${images_dir: -1}" == "/" ] && images_dir+='/'
     ! [ "${metadata_dir: -1}" == "/" ] && metadata_dir+='/'
 
     # user_input_valid
+    working_directory+='book_processing'
+    # If book_processing doesn't exist, make it.
     ! [ -d "${working_directory}" ] && mkdir "${working_directory}"
 
     # Looking for an empty config file.
@@ -143,7 +148,9 @@ find_files(){
     echo -n '' > $config_file
     echo images_dir="${images_dir}" >> $config_file
     echo metadata_dir="${metadata_dir}" >> $config_file
+    echo working_directory="${working_directory}" >> $config_file
     echo current_step=config-file-generated >> $config_file
+    echo -e "\n\n\n\n\n"
   fi
 }
 
@@ -152,10 +159,6 @@ init_copies(){
   # Folder name start with 101. Screen sessions have restrictions on naming
   # and counting is easier to keep track when the leading char is the same.
   # printf '\nchecking if the files exist and are processing or already staged\n\n'
-  cd "/gwork/${current_user}"
-
-  # If book_processing doesn't exist, make it.
-  [ -d book_processing ] || mkdir book_processing
 
   cd "${working_directory}"
 
@@ -357,6 +360,7 @@ moving-file-to-staging(){
 }
 
 check-staging-move(){
+  cd $working_directory
   exit_screen_sessions
   if [ -d ${staging} ]; then
     if ! find_screen "moving_to_staging" > /dev/null ; then
@@ -377,7 +381,7 @@ while true; do
   clear
   printf "\n\n"
   echo -e "${pur}################################################################################${end}"
-  echo -e "\tThis script will exit ${red}ALL${end} idle screens sessions by this user."
+  echo -e "\tThis script will exit ${red}ALL${end} idle screens sessions by the user ${current_user}."
   echo -e "${pur}################################################################################${end}"
   printf "\n\n"
 
@@ -387,7 +391,8 @@ while true; do
 
 case $current_step in
     initial)
-      echo -e "\n\tCurrently on step #1: initial"
+      clear
+      echo -e "\n\tCurrently on step #1: initial\n\n\n\n\n"
       (find_files)
       ;;
     config-file-generated)
@@ -434,8 +439,7 @@ case $current_step in
       echo $current_step
       ;;
 esac
-
-    printf '\nYou can close this and reopen it at any time. This script will complete this step and will wait to start the next one.\n\n'
+    printf '\nYou can close this and reopen it at any time. This script will complete this step\n and will wait to start the next one.\n\n'
     printf 'Waiting 30 seconds to allow screen sesions to initialize. \n'
   	echo -n -e "Waiting 30 seconds to allow screen sesions to initialize.\n" >> ../report.txt
     printf "You can ${bwn}ctrl c${end} at anytime. It will not stop the background sessions\n"
