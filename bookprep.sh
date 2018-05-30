@@ -116,22 +116,19 @@ find_files(){
   if [ ! -d "${images_dir}" ] || [ ! -d "${metadata_dir}" ]; then
     echo "${LONGMESSAGE}"
 
-    # read -p "Where should this create the book_processing folder for processing\nPress enter for the default /gwork/${current_user} (absolute path): " working_directory
-    # working_directory="/gwork/${current_user}/book_processing"
-    # ! [[ "${working_directory:0:1}" == "/" ]] && clear echo "Must be an absolute path for the processing\n" && find_files
+    read -p "Where should this create the book_processing folder for processing (absolute path): " working_directory
+    ! [[ "${working_directory:0:1}" == "/" ]] && clear echo "Must be an absolute path for the processing\n" && find_files
 
-    # images_dir='/gwork/don/test_book_images'
     read -p 'Where are the images (absolute path): ' images_dir
     ! [[ "${images_dir:0:1}" == "/" ]] && clear && find_files
     ! [ -d "${images_dir}" ] && clear && echo "image path doesn't exist\n" && find_files
 
-    # metadata_dir='/gwork/don/test_book_metadata'
     read -p 'Where is the metadata files (absolute path): ' metadata_dir
     ! [[ "${metadata_dir:0:1}" == "/" ]] && clear && find_files
     ! [ -d "${metadata_dir}" ] && clear && echo "metadata path doesn't exist\n" && find_files
 
     # Trailing char should be a /
-    # [ "${working_directory: -1}" == "/" ] && working_directory-='/'
+    [ "${working_directory: -1}" == "/" ] && working_directory-='/'
     ! [ "${images_dir: -1}" == "/" ] && images_dir+='/'
     ! [ "${metadata_dir: -1}" == "/" ] && metadata_dir+='/'
 
@@ -438,7 +435,6 @@ case $current_step in
 esac
 
     printf '\nYou can close this and reopen it at any time. This script will complete this step and will wait to start the next one.\n\n'
-    printf "${staging}\n\n"
     printf 'Waiting 30 seconds to allow screen sesions to initialize. \n'
   	echo -n -e "Waiting 30 seconds to allow screen sesions to initialize.\n" >> ../report.txt
     printf "You can ${bwn}ctrl c${end} at anytime. It will not stop the background sessions\n"
