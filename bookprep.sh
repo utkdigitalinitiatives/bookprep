@@ -62,7 +62,7 @@ staging="/gwork/${current_user}/staging"
 current_user_gwork="/gwork/${current_user}"
 bookprep_location="$(pwd)/"
 screen_session_names=(image_transfer metadata_transfer moving_to_staging processing_)
-config_file="${working_directory}"/.config
+config_file=.config
 
 # declare currently_running_init_rsync_sessions=0
 ARRAY=()
@@ -426,6 +426,7 @@ case $current_step in
       clear
       printf "\n\n\n\t\t\tDONE!\n\n\tFiles have been moved to ${staging} and are ready for ingest.\n\n\n\n"
       rm -rf $working_directory
+      rm -f $config_file
       exit
       ;;
       *)
