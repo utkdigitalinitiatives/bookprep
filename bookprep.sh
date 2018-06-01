@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
-
+# Something went wrong and you want to stop everything
 if [ "$1" == 'stop' ]; then
   clear
   printf "\n\t\tStopping all screen sessions by this user.\n\n\n"
   screen -ls | tail -n +2 | head -n -2 | awk '{print $1}'| xargs -I{} screen -S {} -X quit
   exit
 fi
+
 
 # Steps this app will take (steps with screen sessions will be noted with an "->" )
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
@@ -17,6 +18,7 @@ fi
 # - move_to_processing      - Move files to processing_101+
 # - processing              -> Process the images with bookprep.php
 # - processing-complete     - Processing images complete without errors.
+# - cleanup-files-staging   -> move the files back to the expected parent structure.
 # - moving-file-to-staging  -> Moving the files to stanging directory.
 # - check-staging-move      - Check to see if staging move is complete.
 # - complete                - print to screen message to inform user and exit.
@@ -38,6 +40,10 @@ This script assumes your directory looks like the following tree view.
 │   ├── yrb_1898.xml
 │   └── yrb_1899.xml
 └── ...
+'
+
+COMPLETE='
+Files have been moved to ../staging/ directory
 
 ├── staged/
 │   ├── yrb_1897
@@ -56,12 +62,9 @@ all_done=0
 short_counter=101
 missing_files=()
 current_user="$(whoami)"
-working_directory="/gwork/${current_user}/book_processing"
-staging="/gwork/${current_user}/staging"
-current_user_gwork="/gwork/${current_user}"
+staging="../staging"
 bookprep_location="$(pwd)/"
-screen_session_names=(image_transfer metadata_transfer moving_to_staging processing_)
-config_file="${working_directory}"/.config
+config_file=$bookprep_location/.config_bookprep
 
 # declare currently_running_init_rsync_sessions=0
 ARRAY=()
@@ -76,11 +79,13 @@ dgr=$'\e[1;30m'
 grn=$'\e[0;32m'
 end=$'\e[0m'
 
+# This is for debugging purposes only.
 pause(){
   read -n1 -rsp $'press any\n'
   exit
 }
 
+# Does a screen session exist.
 function find_screen {
   echo "$1"
     if screen -ls "$1" | grep -o "^\s*[0-9]*\.$1[ "$'\t'"](" --color=NEVER -m 1 | grep -oh "[0-9]*\.$1" --color=NEVER -m 1 -q >/dev/null; then
@@ -92,17 +97,19 @@ function find_screen {
         return 1
     fi
 }
+
 # Sends the exit command to screen sessions if idle
 exit_screen_sessions(){
   screen -ls | tail -n +2 | head -n -2 | awk '{print $1}'| xargs -I{} screen -S {} -X stuff "exit^M"
 }
+
 # Writes directories and state to config_file. Line 3 must exist prior to this.
 write_to_config(){
-  let current_step="$1"
-  sed -i "3s/.*/current_step=\"${1}\"/" $config_file
+    current_step="$1"
+    sed -i "4s/.*/current_step=\"${1}\"/" $config_file
 
-  # Some OS need an extra empty string.
-  # sed -i '' "3s/.*/current_step=\"${1}\"/" $config_file
+    # Some OS need an extra empty string.
+    # sed -i '' "3s/.*/current_step=\"${1}\"/" $config_file
 }
 
 # Recursive function to read in file locations
@@ -111,26 +118,26 @@ find_files(){
   if [ ! -d "${images_dir}" ] || [ ! -d "${metadata_dir}" ]; then
     echo "${LONGMESSAGE}"
 
-    # read -p "Where should this create the book_processing folder for processing\nPress enter for the default /gwork/${current_user} (absolute path): " working_directory
-    # working_directory="/gwork/${current_user}/book_processing"
-    # ! [[ "${working_directory:0:1}" == "/" ]] && clear echo "Must be an absolute path for the processing\n" && find_files
+    read -p "Where should this create the book_processing folder for processing (absolute path): " working_directory
+    ! [[ "${working_directory:0:1}" == "/" ]] && clear echo "Must be an absolute path for the processing\n" && find_files
 
-    # images_dir='/gwork/don/test_book_images'
     read -p 'Where are the images (absolute path): ' images_dir
     ! [[ "${images_dir:0:1}" == "/" ]] && clear && find_files
     ! [ -d "${images_dir}" ] && clear && echo "image path doesn't exist\n" && find_files
 
-    # metadata_dir='/gwork/don/test_book_metadata'
     read -p 'Where is the metadata files (absolute path): ' metadata_dir
     ! [[ "${metadata_dir:0:1}" == "/" ]] && clear && find_files
     ! [ -d "${metadata_dir}" ] && clear && echo "metadata path doesn't exist\n" && find_files
 
+
     # Trailing char should be a /
-    # [ "${working_directory: -1}" == "/" ] && working_directory-='/'
+    ! [ "${working_directory: -1}" == "/" ] && working_directory+='/'
     ! [ "${images_dir: -1}" == "/" ] && images_dir+='/'
     ! [ "${metadata_dir: -1}" == "/" ] && metadata_dir+='/'
 
     # user_input_valid
+    working_directory+='book_processing'
+    # If book_processing doesn't exist, make it.
     ! [ -d "${working_directory}" ] && mkdir "${working_directory}"
 
     # Looking for an empty config file.
@@ -141,9 +148,10 @@ find_files(){
     echo -n '' > $config_file
     echo images_dir="${images_dir}" >> $config_file
     echo metadata_dir="${metadata_dir}" >> $config_file
+    echo working_directory="${working_directory}" >> $config_file
     echo current_step=config-file-generated >> $config_file
+    echo -e "\n\n\n\n\n"
   fi
-
 }
 
 # checks if already processing and initiates the merging of the images and metadata.
@@ -151,10 +159,6 @@ init_copies(){
   # Folder name start with 101. Screen sessions have restrictions on naming
   # and counting is easier to keep track when the leading char is the same.
   # printf '\nchecking if the files exist and are processing or already staged\n\n'
-  cd "/gwork/${current_user}"
-
-  # If book_processing doesn't exist, make it.
-  [ -d book_processing ] || mkdir book_processing
 
   cd "${working_directory}"
 
@@ -194,7 +198,7 @@ init_copies_complete_check(){
     printf "\n\t${cyn}Metadata transfer still going${end}\n"
   fi
 
-  exit_screen_sessions
+  # exit_screen_sessions
   printf "\n"
   printf "\t%-6s : %-10s\n" "Image/Metadata Files" "${red}$(find ${images_dir} | wc -l)${end}"
   printf "\t%-6s : %-10s\n\n\n" "Copied" "${pur}$(find ${working_directory} | wc -l)${end}"
@@ -347,29 +351,26 @@ move_to_processing(){
 moving-file-to-staging(){
   cd $working_directory
   printf "Moving to ${staging} folder\n"
-
   if [ ! -d ${staging} ]; then
-    printf "Initializing the file  move to ${staging}. Initializing rsync session\n\n"
+    printf "Initializing the file move to ${staging}. Initializing rsync session\n\n"
     screen -d -m -S moving_to_staging
-    screen -S moving_to_staging -p 0 -X exec rsync --progress --remove-source-files -azv --exclude=.config --exclude=*.log */* $staging
+    screen -S moving_to_staging -p 0 -X stuff "rsync -avz --remove-source-files processing_*/* $staging ^M exit^M"
   fi
   write_to_config "check-staging-move"
-  sleep 20
 }
 
 check-staging-move(){
+  cd $working_directory
   exit_screen_sessions
   if [ -d ${staging} ]; then
     if ! find_screen "moving_to_staging" > /dev/null ; then
       write_to_config "complete"
     fi
+  else
+    if ! find_screen "moving_to_staging" > /dev/null ; then
+      write_to_config "moving-file-to-staging"
+    fi
   fi
-}
-
-complete(){
-  clear
-  printf "\n\n\n\t\t\tDONE!\n\n"
-  exit
 }
 
 # If it won't start check to make sure there aren't odd files.
@@ -378,55 +379,67 @@ complete(){
 while true; do
   # reads the config file
   clear
+  printf "\n\n"
+  echo -e "${pur}################################################################################${end}"
+  echo -e "\tThis script will exit ${red}ALL${end} idle screens sessions by the user ${current_user}."
+  echo -e "${pur}################################################################################${end}"
+  printf "\n\n"
+
   if [ -f $config_file ];then
     . $config_file
   fi
 
 case $current_step in
     initial)
-      echo "\n\tCurrently on step #1: initial"
+      clear
+      echo -e "\n\tCurrently on step #1: initial\n\n\n\n\n"
       (find_files)
       ;;
     config-file-generated)
-      echo "\n\tCurrently on step #2: config-file-generated"
+      echo -e "\n\tCurrently on step #2: config-file-generated"
       (init_copies)
       ;;
     init_copies)
-      echo "\n\tCurrently on step #3: init_copies"
+      echo -e "\n\tCurrently on step #3: init_copies"
       (init_copies_complete_check)
       ;;
     init_copies_complete_check)
-      echo "\n\tCurrently on step #4: init_copies_complete_check"
+      echo -e "\n\tCurrently on step #4: init_copies_complete_check"
       (init_copies_complete_check)
       ;;
     move_to_processing)
-      echo "\n\tCurrently on step #5: move_to_processing"
+      echo -e "\n\tCurrently on step #5: move_to_processing"
       (move_to_processing)
       ;;
     processing)
-      echo "\n\tCurrently on step #6: processing"
+      echo -e "\n\tCurrently on step #6: processing"
       (processing)
       ;;
     processing-complete)
-      echo "\n\tCurrently on step #7: processing-complete"
+      echo -e "\n\tCurrently on step #7: processing-complete"
+      (moving-file-to-staging)
+      ;;
+    moving-file-to-staging)
+      echo -e "\n\tCurrently on step #7: processing-complete"
       (moving-file-to-staging)
       ;;
     check-staging-move)
-      echo "\n\tCurrently on step #8: check-staging-move"
+      echo -e "\n\tCurrently on step #8: check-staging-move"
       (check-staging-move)
       ;;
     complete)
-      echo "\n\tEverything is Complete!"
-      (complete)
+      clear
+      printf "\n\n\n\t\t\tDONE!\n\n\tFiles have been moved to ${staging} and are ready for ingest.\n\n\n\n"
+      rm -rf $working_directory
+      rm -f $config_file
+      exit
       ;;
       *)
       echo "Didn't find state\n"
       echo $current_step
       ;;
 esac
-
-    printf '\nYou can close this and reopen it at any time. This script will complete this step and will wait to start the next one.\n\n'
-    printf "${staging}\n\n"
+    printf '\nYou can close this and reopen it at any time. This script will complete this step\n and will wait to start the next one.\n\n'
     printf 'Waiting 30 seconds to allow screen sesions to initialize. \n'
   	echo -n -e "Waiting 30 seconds to allow screen sesions to initialize.\n" >> ../report.txt
     printf "You can ${bwn}ctrl c${end} at anytime. It will not stop the background sessions\n"
@@ -438,9 +451,9 @@ esac
        sleep 1
        : $((secs--))
     done
-  # fi
-
+    exit_screen_sessions
 done
+
 
 # if something fails use this command to clear ALL of your sessions.
 # screen -ls | tail -n +2 | head -n -2 | awk '{print $1}'| xargs -I{} screen -S {} -X quit
